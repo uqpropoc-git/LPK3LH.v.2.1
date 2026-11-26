@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Monitoring HSE - Incident, Accident & Near Miss</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+  <!-- TOP NAVBAR -->
+  <nav class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-amber-500 text-slate-950 p-2 rounded-lg font-bold">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg leading-tight">HSE Monitoring Dashboard</h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Pelacakan Incident, Accident & Near Miss</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="fetchReports()" id="refreshBtn"
+          class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 border border-slate-700">
+          <i class="fa-solid fa-rotate-right" id="refreshIcon"></i>
+          <span class="hidden sm:inline">Muat Ulang</span>
+        </button>
+        <a href="index.html"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-plus"></i>
+          <span>Buat Laporan</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- SUMMARY KPI CARDS -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+          <span>Total Laporan</span>
+          <i class="fa-solid fa-folder-open text-blue-600 text-base"></i>
+        </div>
+        <p id="statTotal" class="text-2xl font-bold text-slate-900 mt-2">0</p>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+          <span>Near Miss</span>
+          <i class="fa-solid fa-triangle-exclamation text-amber-500 text-base"></i>
+        </div>
+        <p id="statNearMiss" class="text-2xl font-bold text-amber-600 mt-2">0</p>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+          <span>Incident</span>
+          <i class="fa-solid fa-circle-exclamation text-orange-500 text-base"></i>
+        </div>
+        <p id="statIncident" class="text-2xl font-bold text-orange-600 mt-2">0</p>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+          <span>Accident</span>
+          <i class="fa-solid fa-kit-medical text-red-600 text-base"></i>
+        </div>
+        <p id="statAccident" class="text-2xl font-bold text-red-600 mt-2">0</p>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 col-span-2 lg:col-span-1">
+        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+          <span>Open / Progress</span>
+          <i class="fa-solid fa-clock text-purple-600 text-base"></i>
+        </div>
+        <p id="statOpen" class="text-2xl font-bold text-purple-600 mt-2">0</p>
+      </div>
+    </div>
+
+    <!-- FILTER & SEARCH BAR -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Pencarian Teks -->
+        <div class="lg:col-span-2">
+          <label for="searchInput" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Cari Laporan</label>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+            <input type="text" id="searchInput" placeholder="Cari ID tiket, nama pelapor, lokasi, atau departemen..."
+              class="w-full pl-10 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none">
+          </div>
+        </div>
+
+        <!-- Filter Jenis Kejadian -->
+        <div>
+          <label for="filterJenis" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Jenis Kejadian</label>
+          <select id="filterJenis"
+            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none">
+            <option value="ALL">Semua Jenis Kejadian</option>
+            <option value="Near Miss">Near Miss</option>
+            <option value="Incident">Incident</option>
+            <option value="Accident">Accident</option>
+          </select>
+        </div>
+
+        <!-- Filter Status Tindak Lanjut -->
+        <div>
+          <label for="filterStatus" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Status Tindak Lanjut</label>
+          <select id="filterStatus"
+            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none">
+            <option value="ALL">Semua Status</option>
+            <option value="Open">Open (Menunggu)</option>
+            <option value="In Progress">In Progress (Investigasi/Perbaikan)</option>
+            <option value="Closed">Closed (Selesai)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA TABLE CARD -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              <th class="py-3.5 px-4">ID Tiket & Waktu</th>
+              <th class="py-3.5 px-4">Pelapor & Dept</th>
+              <th class="py-3.5 px-4">Jenis Kejadian</th>
+              <th class="py-3.5 px-4">Lokasi</th>
+              <th class="py-3.5 px-4">Status Tindak Lanjut</th>
+              <th class="py-3.5 px-4 text-center">Bukti</th>
+              <th class="py-3.5 px-4 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="reportsTableBody" class="divide-y divide-slate-200 text-sm">
+            <!-- Baris data dirender via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Loading State -->
+      <div id="tableLoading" class="py-12 text-center text-slate-500">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-600 mb-2"></i>
+        <p class="text-sm font-medium">Memuat data laporan dari Google Sheets...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="tableEmpty" class="hidden py-12 text-center text-slate-500">
+        <i class="fa-regular fa-folder-open text-3xl text-slate-300 mb-2"></i>
+        <p class="text-sm font-medium">Tidak ada laporan yang sesuai dengan filter.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL DETAIL & UPDATE STATUS TINDAK LANJUT -->
+  <div id="detailModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div>
+          <span id="modalTicketId" class="font-mono text-xs bg-slate-800 text-blue-400 px-2 py-0.5 rounded">HSE-0000</span>
+          <h2 class="text-lg font-bold mt-1">Detail Laporan & Tindak Lanjut</h2>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1.5">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-5 text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <span class="text-xs text-slate-500 block">Nama Pelapor</span>
+            <span id="modalPelapor" class="font-semibold text-slate-900">-</span>
+          </div>
+          <div>
+            <span class="text-xs text-slate-500 block">Departemen</span>
+            <span id="modalDepartemen" class="font-semibold text-slate-900">-</span>
+          </div>
+          <div>
+            <span class="text-xs text-slate-500 block">Waktu Kejadian</span>
+            <span id="modalWaktu" class="font-semibold text-slate-900">-</span>
+          </div>
+          <div>
+            <span class="text-xs text-slate-500 block">Jenis Kejadian</span>
+            <span id="modalJenis" class="inline-block mt-0.5">-</span>
+          </div>
+          <div class="sm:col-span-2">
+            <span class="text-xs text-slate-500 block">Lokasi Kejadian</span>
+            <span id="modalLokasi" class="font-semibold text-slate-900">-</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-slate-700 mb-1">Deskripsi Kronologi</h4>
+          <p id="modalKronologi" class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-slate-700 whitespace-pre-line leading-relaxed">-</p>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-slate-700 mb-1">Tindakan Perbaikan Awal</h4>
+          <p id="modalTindakan" class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-slate-700 whitespace-pre-line leading-relaxed">-</p>
+        </div>
+
+        <!-- Lampiran Google Drive -->
+        <div>
+          <h4 class="font-semibold text-slate-700 mb-2">Lampiran Bukti (Google Drive)</h4>
+          <div id="modalAttachments" class="space-y-2"></div>
+        </div>
+
+        <hr class="border-slate-200">
+
+        <!-- Form Update Status Tindak Lanjut -->
+        <form id="statusUpdateForm" class="bg-blue-50/60 border border-blue-200 rounded-xl p-4 space-y-3">
+          <h4 class="font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-check text-blue-600"></i>
+            <span>Pembaruan Status Tindak Lanjut (CAPA)</span>
+          </h4>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="modalSelectStatus" class="block text-xs font-semibold text-slate-600 mb-1">Status Laporan</label>
+              <select id="modalSelectStatus" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-blue-500 outline-none">
+                <option value="Open">Open (Menunggu)</option>
+                <option value="In Progress">In Progress (Investigasi/Perbaikan)</option>
+                <option value="Closed">Closed (Selesai)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="modalCatatanStatus" class="block text-xs font-semibold text-slate-600 mb-1">Catatan Investigasi / Tindakan Perbaikan Lanjutan</label>
+            <textarea id="modalCatatanStatus" rows="2" placeholder="Tuliskan hasil investigasi atau tindakan korektif yang telah dilakukan..."
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-blue-500 outline-none"></textarea>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-1">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg font-medium transition">
+              Tutup
+            </button>
+            <button type="submit" id="saveStatusBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Simpan Status</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT
+    // Ganti dengan URL Web App Google Apps Script Anda
+    // =========================================================================
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzLA6uTdAma718oP-lk04bjTqX2j7IuZfS3INs4lZ9TQrjBUNWWPyZ5mdxGsRsQrVQj/exec';
+
+    let allReports = [];
+    let currentEditingTicketId = null;
+
+    const tableBody = document.getElementById('reportsTableBody');
+    const tableLoading = document.getElementById('tableLoading');
+    const tableEmpty = document.getElementById('tableEmpty');
+    const searchInput = document.getElementById('searchInput');
+    const filterJenis = document.getElementById('filterJenis');
+    const filterStatus = document.getElementById('filterStatus');
+
+    // Load data saat halaman dibuka
+    window.addEventListener('DOMContentLoaded', fetchReports);
+
+    // Event listener filter real-time
+    searchInput.addEventListener('input', applyFilters);
+    filterJenis.addEventListener('change', applyFilters);
+    filterStatus.addEventListener('change', applyFilters);
+
+    async function fetchReports() {
+      const refreshIcon = document.getElementById('refreshIcon');
+      refreshIcon.classList.add('fa-spin');
+      tableLoading.classList.remove('hidden');
+      tableEmpty.classList.add('hidden');
+      tableBody.innerHTML = '';
+
+      try {
+        const response = await fetch(GAS_WEB_APP_URL);
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          allReports = result.data || [];
+          updateSummaryStats(allReports);
+          applyFilters();
+        } else {
+          alert('Gagal memuat data: ' + result.message);
+        }
+      } catch (error) {
+        alert('Terjadi kesalahan koneksi saat mengambil data: ' + error.message);
+      } finally {
+        refreshIcon.classList.remove('fa-spin');
+        tableLoading.classList.add('hidden');
+      }
+    }
+
+    function updateSummaryStats(data) {
+      document.getElementById('statTotal').textContent = data.length;
+      document.getElementById('statNearMiss').textContent = data.filter(r => r.jenisKejadian === 'Near Miss').length;
+      document.getElementById('statIncident').textContent = data.filter(r => r.jenisKejadian === 'Incident').length;
+      document.getElementById('statAccident').textContent = data.filter(r => r.jenisKejadian === 'Accident').length;
+      document.getElementById('statOpen').textContent = data.filter(r => r.statusTindakLanjut !== 'Closed').length;
+    }
+
+    function applyFilters() {
+      const keyword = searchInput.value.toLowerCase().trim();
+      const jenisVal = filterJenis.value;
+      const statusVal = filterStatus.value;
+
+      const filtered = allReports.filter(item => {
+        const matchJenis = jenisVal === 'ALL' || item.jenisKejadian === jenisVal;
+        const matchStatus = statusVal === 'ALL' || item.statusTindakLanjut === statusVal;
+        const matchSearch = !keyword ||
+          item.ticketId.toLowerCase().includes(keyword) ||
+          item.namaPelapor.toLowerCase().includes(keyword) ||
+          item.departemen.toLowerCase().includes(keyword) ||
+          item.lokasi.toLowerCase().includes(keyword);
+
+        return matchJenis && matchStatus && matchSearch;
+      });
+
+      renderTable(filtered);
+    }
+
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+
+      if (data.length === 0) {
+        tableEmpty.classList.remove('hidden');
+        return;
+      }
+      tableEmpty.classList.add('hidden');
+
+      data.forEach(item => {
+        const hasFiles = (item.fotoUrls && item.fotoUrls !== '-') ||
+                         (item.videoUrls && item.videoUrls !== '-') ||
+                         (item.dokumenUrls && item.dokumenUrls !== '-');
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 whitespace-nowrap">
+            <div class="font-mono font-bold text-blue-600 text-xs">${item.ticketId}</div>
+            <div class="text-xs text-slate-500 mt-0.5">${item.tanggalWaktu}</div>
+          </td>
+          <td class="py-3.5 px-4">
+            <div class="font-semibold text-slate-800">${escapeHtml(item.namaPelapor)}</div>
+            <div class="text-xs text-slate-500">${escapeHtml(item.departemen)}</div>
+          </td>
+          <td class="py-3.5 px-4 whitespace-nowrap">
+            ${getJenisBadge(item.jenisKejadian)}
+          </td>
+          <td class="py-3.5 px-4 max-w-xs truncate" title="${escapeHtml(item.lokasi)}">
+            <span class="text-slate-700">${escapeHtml(item.lokasi)}</span>
+          </td>
+          <td class="py-3.5 px-4 whitespace-nowrap">
+            ${getStatusBadge(item.statusTindakLanjut)}
+          </td>
+          <td class="py-3.5 px-4 text-center whitespace-nowrap">
+            ${hasFiles
+              ? `<a href="${item.folderUrl}" target="_blank" class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-md">
+                   <i class="fa-brands fa-google-drive"></i> Buka Folder
+                 </a>`
+              : `<span class="text-xs text-slate-400">Tidak ada</span>`
+            }
+          </td>
+          <td class="py-3.5 px-4 text-right whitespace-nowrap">
+            <button onclick="openDetailModal('${item.ticketId}')"
+              class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+              Detail / Update
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function getJenisBadge(jenis) {
+      if (jenis === 'Accident') {
+        return `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                  <i class="fa-solid fa-kit-medical"></i> Accident
+                </span>`;
+      }
+      if (jenis === 'Incident') {
+        return `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                  <i class="fa-solid fa-circle-exclamation"></i> Incident
+                </span>`;
+      }
+      return `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                <i class="fa-solid fa-triangle-exclamation"></i> Near Miss
+              </span>`;
+    }
+
+    function getStatusBadge(status) {
+      if (status === 'Closed') {
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Closed
+                </span>`;
+      }
+      if (status === 'In Progress') {
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> In Progress
+                </span>`;
+      }
+      return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Open
+              </span>`;
+    }
+
+    // Modal Detail & Update Status
+    function openDetailModal(ticketId) {
+      const report = allReports.find(r => r.ticketId === ticketId);
+      if (!report) return;
+
+      currentEditingTicketId = ticketId;
+      document.getElementById('modalTicketId').textContent = report.ticketId;
+      document.getElementById('modalPelapor').textContent = report.namaPelapor;
+      document.getElementById('modalDepartemen').textContent = report.departemen;
+      document.getElementById('modalWaktu').textContent = report.tanggalWaktu;
+      document.getElementById('modalJenis').innerHTML = getJenisBadge(report.jenisKejadian);
+      document.getElementById('modalLokasi').textContent = report.lokasi;
+      document.getElementById('modalKronologi').textContent = report.kronologi;
+      document.getElementById('modalTindakan').textContent = report.tindakanAwal;
+
+      document.getElementById('modalSelectStatus').value = report.statusTindakLanjut || 'Open';
+      document.getElementById('modalCatatanStatus').value = report.catatanTindakLanjut === '-' ? '' : report.catatanTindakLanjut;
+
+      // Render Daftar Link File Drive
+      const attachmentsContainer = document.getElementById('modalAttachments');
+      attachmentsContainer.innerHTML = `
+        <a href="${report.folderUrl}" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 hover:underline mb-2">
+          <i class="fa-brands fa-google-drive"></i> Buka Folder Utama Kejadian di Google Drive
+        </a>
+      `;
+
+      const rawLinks = [report.fotoUrls, report.videoUrls, report.dokumenUrls]
+        .filter(str => str && str !== '-')
+        .join('\n')
+        .split('\n')
+        .filter(line => line.trim() !== '');
+
+      if (rawLinks.length > 0) {
+        const ul = document.createElement('ul');
+        ul.className = 'space-y-1.5';
+        rawLinks.forEach(entry => {
+          const splitIdx = entry.lastIndexOf(': http');
+          const fileName = splitIdx !== -1 ? entry.substring(0, splitIdx) : 'Lampiran File';
+          const fileUrl = splitIdx !== -1 ? entry.substring(splitIdx + 2) : entry;
+
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <a href="${fileUrl}" target="_blank" class="flex items-center justify-between bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-lg text-xs text-slate-700 transition">
+              <span class="truncate font-medium"><i class="fa-solid fa-paperclip text-slate-400 mr-1.5"></i>${escapeHtml(fileName)}</span>
+              <span class="text-blue-600 font-semibold shrink-0 ml-2">Buka <i class="fa-solid fa-arrow-up-right-from-square ml-0.5"></i></span>
+            </a>
+          `;
+          ul.appendChild(li);
+        });
+        attachmentsContainer.appendChild(ul);
+      } else {
+        attachmentsContainer.innerHTML += `<p class="text-xs text-slate-400">Tidak ada file yang diunggah pada laporan ini.</p>`;
+      }
+
+      const modal = document.getElementById('detailModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('detailModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      currentEditingTicketId = null;
+    }
+
+    // Submit Perubahan Status ke Google Apps Script
+    document.getElementById('statusUpdateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentEditingTicketId) return;
+
+      const saveBtn = document.getElementById('saveStatusBtn');
+      const originalBtnHtml = saveBtn.innerHTML;
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Menyimpan...</span>`;
+
+      const newStatus = document.getElementById('modalSelectStatus').value;
+      const notes = document.getElementById('modalCatatanStatus').value.trim();
+
+      try {
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'updateStatus',
+            ticketId: currentEditingTicketId,
+            statusTindakLanjut: newStatus,
+            catatanTindakLanjut: notes
+          })
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+          // Perbarui state lokal tanpa perlu reload penuh
+          const idx = allReports.findIndex(r => r.ticketId === currentEditingTicketId);
+          if (idx !== -1) {
+            allReports[idx].statusTindakLanjut = newStatus;
+            allReports[idx].catatanTindakLanjut = notes || '-';
+          }
+          updateSummaryStats(allReports);
+          applyFilters();
+          closeModal();
+        } else {
+          alert('Gagal memperbarui status: ' + result.message);
+        }
+      } catch (err) {
+        alert('Kesalahan jaringan: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalBtnHtml;
+      }
+    });
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
