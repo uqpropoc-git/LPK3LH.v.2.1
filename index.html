@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Pelaporan HSE - Incident, Accident & Near Miss</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid #ffffff;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex-col items-center justify-center text-white p-4">
+    <div class="spinner mb-4"></div>
+    <h3 class="text-lg font-semibold">Mengirim Laporan & Mengunggah Lampiran...</h3>
+    <p id="loadingStatusText" class="text-sm text-slate-300 mt-1 text-center max-w-md">
+      Mohon jangan tutup halaman ini hingga proses selesai.
+    </p>
+  </div>
+
+  <!-- MODAL KONFIRMASI SUKSES -->
+  <div id="successModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl text-center transform transition-all">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-check text-3xl"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-900">Laporan Terkirim!</h2>
+      <p class="text-sm text-slate-600 mt-2">
+        Data kejadian dan file bukti telah tersimpan aman di sistem HSE.
+      </p>
+      
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 my-5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Nomor Tiket Laporan</span>
+        <div class="flex items-center justify-center gap-2 mt-1">
+          <span id="displayTicketId" class="text-xl font-mono font-bold text-blue-600">HSE-20260000-0000</span>
+          <button onclick="copyTicketId()" title="Salin Nomor Tiket" class="text-slate-400 hover:text-blue-600 p-1">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </div>
+        <p id="copyFeedback" class="text-xs text-emerald-600 hidden mt-1">Nomor tiket disalin!</p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <a id="driveFolderLink" href="#" target="_blank" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-sm transition flex items-center justify-center gap-2">
+          <i class="fa-brands fa-google-drive text-blue-600"></i> Lihat Folder Bukti di Drive
+        </a>
+        <button onclick="resetAndCloseModal()" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition">
+          Buat Laporan Baru
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <div class="max-w-3xl mx-auto">
+    <!-- HEADER -->
+    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-t-2xl p-6 sm:p-8 text-white shadow-lg">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="bg-amber-500 text-slate-950 text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider">HSE Reporting</span>
+        <span class="text-slate-400 text-xs"><i class="fa-solid fa-shield-halved mr-1"></i>Safety First</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Formulir Pelaporan Kejadian</h1>
+      <p class="text-slate-300 text-sm mt-1">
+        Laporkan setiap <strong>Incident</strong>, <strong>Accident</strong>, maupun <strong>Near Miss</strong> secara cepat untuk tindak lanjut pencegahan.
+      </p>
+    </div>
+
+    <!-- FORM CARD -->
+    <form id="hseForm" class="bg-white rounded-b-2xl shadow-lg p-6 sm:p-8 space-y-6" novalidate>
+      
+      <!-- Alert Error -->
+      <div id="formAlert" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg text-sm text-red-700">
+        <div class="flex items-center gap-2 font-semibold">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>Periksa Kembali Input Anda</span>
+        </div>
+        <p id="formAlertMsg" class="mt-1"></p>
+      </div>
+
+      <!-- Baris 1: Nama Pelapor & Departemen -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label for="namaPelapor" class="block text-sm font-semibold text-slate-700 mb-1">
+            Nama Pelapor <span class="text-red-500">*</span>
+          </label>
+          <input type="text" id="namaPelapor" name="namaPelapor" required placeholder="Masukkan nama lengkap"
+            class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition">
+        </div>
+
+        <div>
+          <label for="departemen" class="block text-sm font-semibold text-slate-700 mb-1">
+            Departemen / Divisi <span class="text-red-500">*</span>
+          </label>
+          <select id="departemen" name="departemen" required
+            class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition">
+            <option value="">-- Pilih Departemen --</option>
+            <option value="Operasional / Produksi">Operasional / Produksi</option>
+            <option value="Maintenance / Engineering">Maintenance / Engineering</option>
+            <option value="HSE / K3">HSE / K3</option>
+            <option value="Logistik & Gudang">Logistik & Gudang</option>
+            <option value="HRGA & Umum">HRGA & Umum</option>
+            <option value="Kontraktor / Mitra">Kontraktor / Mitra</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Baris 2: Tanggal & Waktu + Lokasi -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label for="tanggalWaktu" class="block text-sm font-semibold text-slate-700 mb-1">
+            Tanggal & Waktu Kejadian <span class="text-red-500">*</span>
+          </label>
+          <input type="datetime-local" id="tanggalWaktu" name="tanggalWaktu" required
+            class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition">
+        </div>
+
+        <div>
+          <label for="lokasi" class="block text-sm font-semibold text-slate-700 mb-1">
+            Lokasi Kejadian <span class="text-red-500">*</span>
+          </label>
+          <input type="text" id="lokasi" name="lokasi" required placeholder="Contoh: Area Workshop B / Jalur Hauling KM 12"
+            class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition">
+        </div>
+      </div>
+
+      <!-- Baris 3: Jenis Kejadian (Radio Cards) -->
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-2">
+          Jenis Kejadian <span class="text-red-500">*</span>
+        </label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- Near Miss -->
+          <label class="cursor-pointer">
+            <input type="radio" name="jenisKejadian" value="Near Miss" class="peer sr-only" required>
+            <div class="rounded-xl border-2 border-slate-200 p-3.5 hover:bg-slate-50 peer-checked:border-amber-500 peer-checked:bg-amber-50/60 transition">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-slate-800">Near Miss</span>
+                <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Hampir celaka, belum menimbulkan cedera/kerusakan.</p>
+            </div>
+          </label>
+
+          <!-- Incident -->
+          <label class="cursor-pointer">
+            <input type="radio" name="jenisKejadian" value="Incident" class="peer sr-only">
+            <div class="rounded-xl border-2 border-slate-200 p-3.5 hover:bg-slate-50 peer-checked:border-orange-500 peer-checked:bg-orange-50/60 transition">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-slate-800">Incident</span>
+                <i class="fa-solid fa-circle-exclamation text-orange-500"></i>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Kejadian tidak diinginkan / kerusakan properti ringan.</p>
+            </div>
+          </label>
+
+          <!-- Accident -->
+          <label class="cursor-pointer">
+            <input type="radio" name="jenisKejadian" value="Accident" class="peer sr-only">
+            <div class="rounded-xl border-2 border-slate-200 p-3.5 hover:bg-slate-50 peer-checked:border-red-600 peer-checked:bg-red-50/60 transition">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-slate-800">Accident</span>
+                <i class="fa-solid fa-kit-medical text-red-600"></i>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Kecelakaan kerja dengan cedera atau kerusakan berat.</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Baris 4: Deskripsi Kronologi -->
+      <div>
+        <label for="kronologi" class="block text-sm font-semibold text-slate-700 mb-1">
+          Deskripsi Kronologi Kejadian <span class="text-red-500">*</span>
+        </label>
+        <textarea id="kronologi" name="kronologi" rows="4" required
+          placeholder="Jelaskan secara rinci urutan kejadian (apa yang sedang dikerjakan, bagaimana kejadian berlangsung, dan siapa/apa yang terlibat)..."
+          class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"></textarea>
+      </div>
+
+      <!-- Baris 5: Tindakan Perbaikan Awal -->
+      <div>
+        <label for="tindakanAwal" class="block text-sm font-semibold text-slate-700 mb-1">
+          Tindakan Perbaikan Awal (Immediate Action) <span class="text-red-500">*</span>
+        </label>
+        <textarea id="tindakanAwal" name="tindakanAwal" rows="3" required
+          placeholder="Jelaskan tindakan darurat/pengamanan langsung yang sudah dilakukan di lokasi..."
+          class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"></textarea>
+      </div>
+
+      <!-- Baris 6: Multi-format File Upload -->
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">
+          Lampiran Bukti (Foto, Video, atau Dokumen)
+        </label>
+        <p class="text-xs text-slate-500 mb-2">
+          Mendukung <strong>JPG, PNG, MP4, PDF, DOCX</strong> secara bersamaan. Maksimal 15 MB per file (total maksimal 25 MB).
+        </p>
+
+        <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-blue-500 hover:bg-blue-50/40 transition cursor-pointer">
+          <input type="file" id="fileInput" multiple
+            accept=".jpg,.jpeg,.png,.mp4,.pdf,.docx,image/jpeg,image/png,video/mp4,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            class="hidden">
+          <div class="text-slate-500">
+            <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-600 mb-2"></i>
+            <p class="text-sm font-medium text-slate-700">Klik untuk memilih file atau seret file ke sini</p>
+            <p class="text-xs text-slate-400 mt-1">Bisa memilih beberapa file sekaligus dari galeri atau folder</p>
+          </div>
+        </div>
+
+        <!-- Daftar Preview File Terpilih -->
+        <ul id="fileList" class="mt-3 space-y-2"></ul>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="pt-2">
+        <button type="submit" id="submitBtn"
+          class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-base">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Kirim Laporan Kejadian</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    // =========================================================================
+    // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT
+    // Ganti dengan URL hasil Deploy Web App dari Google Apps Script Anda
+    // =========================================================================
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzLA6uTdAma718oP-lk04bjTqX2j7IuZfS3INs4lZ9TQrjBUNWWPyZ5mdxGsRsQrVQj/exec';
+
+    const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'mp4', 'pdf', 'docx'];
+    const MAX_FILE_SIZE_MB = 15;
+    const MAX_TOTAL_SIZE_MB = 25;
+
+    let selectedFiles = [];
+
+    const form = document.getElementById('hseForm');
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const fileListEl = document.getElementById('fileList');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingStatusText = document.getElementById('loadingStatusText');
+    const successModal = document.getElementById('successModal');
+    const formAlert = document.getElementById('formAlert');
+    const formAlertMsg = document.getElementById('formAlertMsg');
+
+    // Set default waktu saat ini pada input datetime-local
+    window.addEventListener('DOMContentLoaded', () => {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('tanggalWaktu').value = now.toISOString().slice(0, 16);
+    });
+
+    // Event Klik & Drag-and-Drop Area File
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-blue-500', 'bg-blue-50');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+      fileInput.value = ''; // Reset agar file yang sama bisa dipilih ulang jika dihapus
+    });
+
+    function handleFiles(files) {
+      hideAlert();
+      for (const file of files) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!ALLOWED_EXTENSIONS.includes(ext)) {
+          showAlert(`Format file "${file.name}" tidak didukung. Gunakan JPG, PNG, MP4, PDF, atau DOCX.`);
+          continue;
+        }
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          showAlert(`Ukuran file "${file.name}" melebihi batas ${MAX_FILE_SIZE_MB} MB.`);
+          continue;
+        }
+        // Cegah duplikasi nama file yang sama
+        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+          selectedFiles.push(file);
+        }
+      }
+
+      const totalBytes = selectedFiles.reduce((acc, f) => acc + f.size, 0);
+      if (totalBytes > MAX_TOTAL_SIZE_MB * 1024 * 1024) {
+        showAlert(`Total ukuran seluruh lampiran melebihi batas maksimal ${MAX_TOTAL_SIZE_MB} MB.`);
+      }
+
+      renderFileList();
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      renderFileList();
+    }
+
+    function renderFileList() {
+      fileListEl.innerHTML = '';
+      selectedFiles.forEach((file, index) => {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        let iconClass = 'fa-file text-slate-500';
+        if (file.type.startsWith('image/')) iconClass = 'fa-file-image text-emerald-600';
+        else if (file.type.startsWith('video/')) iconClass = 'fa-file-video text-purple-600';
+        else if (file.type === 'application/pdf') iconClass = 'fa-file-pdf text-red-600';
+        else if (file.name.endsWith('.docx')) iconClass = 'fa-file-word text-blue-600';
+
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-sm';
+        li.innerHTML = `
+          <div class="flex items-center gap-2.5 truncate pr-2">
+            <i class="fa-solid ${iconClass} text-lg"></i>
+            <span class="font-medium text-slate-700 truncate">${file.name}</span>
+            <span class="text-xs text-slate-400 shrink-0">(${sizeMB} MB)</span>
+          </div>
+          <button type="button" onclick="removeFile(${index})" class="text-slate-400 hover:text-red-600 transition p-1" title="Hapus file">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        `;
+        fileListEl.appendChild(li);
+      });
+    }
+
+    // Konversi File ke Base64
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          // Hilangkan prefix "data:mime/type;base64,"
+          const base64String = reader.result.split(',')[1];
+          resolve({
+            fileName: file.name,
+            mimeType: file.type || 'application/octet-stream',
+            base64Data: base64String
+          });
+        };
+        reader.onerror = (error) => reject(error);
+      });
+    }
+
+    // Validasi & Pengiriman Form
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert();
+
+      const namaPelapor = document.getElementById('namaPelapor').value.trim();
+      const departemen = document.getElementById('departemen').value;
+      const tanggalWaktu = document.getElementById('tanggalWaktu').value;
+      const lokasi = document.getElementById('lokasi').value.trim();
+      const jenisKejadianEl = document.querySelector('input[name="jenisKejadian"]:checked');
+      const kronologi = document.getElementById('kronologi').value.trim();
+      const tindakanAwal = document.getElementById('tindakanAwal').value.trim();
+
+      // Validasi Input Wajib
+      if (!namaPelapor || !departemen || !tanggalWaktu || !lokasi || !jenisKejadianEl || !kronologi || !tindakanAwal) {
+        showAlert('Harap lengkapi seluruh kolom yang bertanda bintang (*).');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      const totalBytes = selectedFiles.reduce((acc, f) => acc + f.size, 0);
+      if (totalBytes > MAX_TOTAL_SIZE_MB * 1024 * 1024) {
+        showAlert(`Total ukuran lampiran (${(totalBytes / (1024 * 1024)).toFixed(1)} MB) melebihi batas ${MAX_TOTAL_SIZE_MB} MB.`);
+        return;
+      }
+
+      // Tampilkan Loading Spinner
+      loadingOverlay.classList.remove('hidden');
+      loadingOverlay.classList.add('flex');
+
+      try {
+        loadingStatusText.textContent = selectedFiles.length > 0
+          ? `Memproses ${selectedFiles.length} file lampiran...`
+          : 'Menyimpan data laporan ke server...';
+
+        const encodedFiles = await Promise.all(selectedFiles.map(file => fileToBase64(file)));
+
+        loadingStatusText.textContent = 'Mengunggah data ke Google Drive & Google Sheets...';
+
+        const payload = {
+          namaPelapor,
+          departemen,
+          tanggalWaktu,
+          jenisKejadian: jenisKejadianEl.value,
+          lokasi,
+          kronologi,
+          tindakanAwal,
+          files: encodedFiles
+        };
+
+        // Menggunakan text/plain agar terhindar dari CORS Preflight OPTIONS pada Apps Script
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          document.getElementById('displayTicketId').textContent = result.ticketId;
+          document.getElementById('driveFolderLink').href = result.folderUrl;
+          successModal.classList.remove('hidden');
+          successModal.classList.add('flex');
+        } else {
+          throw new Error(result.message || 'Gagal memproses laporan.');
+        }
+
+      } catch (err) {
+        showAlert('Gagal mengirim laporan: ' + err.message);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } finally {
+        loadingOverlay.classList.add('hidden');
+        loadingOverlay.classList.remove('flex');
+      }
+    });
+
+    function showAlert(message) {
+      formAlertMsg.textContent = message;
+      formAlert.classList.remove('hidden');
+    }
+
+    function hideAlert() {
+      formAlert.classList.add('hidden');
+    }
+
+    function copyTicketId() {
+      const ticketText = document.getElementById('displayTicketId').textContent;
+      navigator.clipboard.writeText(ticketText);
+      const feedback = document.getElementById('copyFeedback');
+      feedback.classList.remove('hidden');
+      setTimeout(() => feedback.classList.add('hidden'), 2000);
+    }
+
+    function resetAndCloseModal() {
+      successModal.classList.add('hidden');
+      successModal.classList.remove('flex');
+      form.reset();
+      selectedFiles = [];
+      renderFileList();
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('tanggalWaktu').value = now.toISOString().slice(0, 16);
+    }
+  </script>
+</body>
+</html>
