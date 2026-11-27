@@ -1,48 +1,44 @@
-const CACHE_NAME = 'hse-pwa-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'hse-pwa-v2';
+const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.json'
 ];
 
-// Install Service Worker & Cache App Shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
   );
   self.skipWaiting();
 });
 
-// Activate & Hapus Cache Lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
+    caches.keys().then((names) =>
+      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
+    )
   );
   self.clients.claim();
 });
 
-// Fetch Strategy: Network First (agar data Google Sheets selalu terbaru), fallback ke Cache
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+
+  // Jangan cache request API Google Apps Script
+  if (url.hostname.includes('script.google.com') || url.hostname.includes('script.googleusercontent.com')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const resClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, resClone);
-        });
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
   );
 });
