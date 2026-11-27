@@ -15,6 +15,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     :root {
+      /* Ganti --bg-main ke #F2F7F4 (Hijau Sage) atau #EEF2F6 (Slate) sesuai kebutuhan */
       --bg-main: #F1F5F9;
       --bg-sidebar: #FFFFFF;
       --border-subtle: #E2E8F0;
@@ -76,7 +77,7 @@
       </div>
       <h2 id="successTitle" class="text-xl font-bold text-slate-900">Laporan Berhasil Terkirim!</h2>
       <p id="successDesc" class="text-sm text-slate-500 mt-1">Data, titik koordinat WGS84, dan bukti telah tersimpan.</p>
-      
+
       <div class="bg-slate-50 border border-[#E2E8F0] rounded-xl p-4 my-4">
         <span id="ticketLabel" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Nomor Tiket Laporan</span>
         <div class="flex items-center justify-center gap-2 mt-1">
@@ -181,7 +182,6 @@
       </div>
     </div>
 
-    <!-- Status Koneksi & Antrean Offline di Sidebar -->
     <div class="px-3 pt-3">
       <div id="deskNetBadge" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
         <span class="flex items-center gap-1.5"><span id="deskNetDot" class="w-2 h-2 rounded-full bg-emerald-600"></span><span id="deskNetText">Online</span></span>
@@ -255,7 +255,7 @@
   <main class="flex-1 lg:pl-64">
     <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-5">
 
-      <!-- BANNER ANTREAN OFFLINE (Muncul jika ada laporan yang menunggu sinyal) -->
+      <!-- BANNER ANTREAN OFFLINE -->
       <div id="offlineQueuePanel" class="hidden hse-card border-l-4 border-l-amber-500 p-4 rounded-2xl">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -415,7 +415,7 @@
           <div class="lg:col-span-2 space-y-6">
             <div class="hse-card p-5 sm:p-6 rounded-2xl space-y-4">
               <h3 class="font-bold text-slate-800 text-base border-b border-[#E2E8F0] pb-3">1. Informasi Kejadian</h3>
-              
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal & Waktu Kejadian <span class="text-red-500">*</span></label>
@@ -544,7 +544,7 @@
 
             <div class="hse-card p-5 sm:p-6 rounded-2xl space-y-3">
               <h3 class="font-bold text-slate-800 text-base border-b border-[#E2E8F0] pb-3">4. Lampiran Bukti</h3>
-              <p class="text-xs text-slate-500">Unggah Foto (JPG/PNG), Video (MP4), atau Dokumen (PDF/DOCX).</p>
+              <p class="text-xs text-slate-500">Unggah Foto (JPG/PNG), Video (MP4), atau Dokumen (PDF/DOCX). Foto otomatis distempel koordinat GPS.</p>
 
               <input type="file" id="fileInput" multiple
                 accept=".jpg,.jpeg,.png,.mp4,.pdf,.docx,image/jpeg,image/png,video/mp4,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -557,7 +557,11 @@
                   <span class="text-[10px] mt-1 font-medium">Tambah</span>
                 </button>
               </div>
-              <p class="text-[11px] text-slate-400">Format: JPG, PNG, MP4, PDF, DOCX (Maks 25 MB total)</p>
+              <div class="text-[11px] text-slate-500 space-y-0.5 pt-1">
+                <p>• Foto (JPG/PNG): maks <strong>5 MB</strong>/file (otomatis dikompresi & distempel GPS)</p>
+                <p>• Video (MP4): maks <strong>15 MB</strong>/file • Dokumen (PDF/DOCX): maks <strong>5 MB</strong>/file</p>
+                <p>• Total seluruh lampiran per laporan: maks <strong>25 MB</strong> (<span id="totalAttachmentSizeLabel">0.00 MB / 25 MB</span>)</p>
+              </div>
             </div>
 
             <div class="hse-card p-5 sm:p-6 rounded-2xl space-y-3">
@@ -696,6 +700,12 @@
     let charts = {};
     let isSyncingQueue = false;
 
+    const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'mp4', 'pdf', 'docx'];
+    const MAX_PHOTO_BYTES = 5 * 1024 * 1024;   // 5 MB per foto
+    const MAX_DOC_BYTES   = 5 * 1024 * 1024;   // 5 MB per dokumen
+    const MAX_VIDEO_BYTES = 15 * 1024 * 1024;  // 15 MB per video
+    const MAX_TOTAL_BYTES = 25 * 1024 * 1024;  // 25 MB total per laporan
+
     // =========================================================================
     // INDEXEDDB OFFLINE QUEUE (FIFO BERDASAR LAPORAN PERTAMA)
     // =========================================================================
@@ -722,7 +732,7 @@
       const db = await openQueueDB();
       const entry = {
         ...payload,
-        queuedAt: Date.now(), // Kunci urutan FIFO: laporan paling awal memiliki queuedAt terkecil
+        queuedAt: Date.now(),
         retryCount: 0
       };
       return new Promise((resolve, reject) => {
@@ -738,7 +748,7 @@
       return new Promise((resolve, reject) => {
         const tx = db.transaction(STORE_NAME, 'readonly');
         const index = tx.objectStore(STORE_NAME).index('queuedAt');
-        const req = index.getAll(); // Mengembalikan urutan ascending (terlama / laporan pertama dulu)
+        const req = index.getAll();
         req.onsuccess = () => resolve(req.result || []);
         req.onerror = () => reject(req.error);
       });
@@ -844,7 +854,6 @@
       return await res.json();
     }
 
-    // Sinkronisasi antrean FIFO: laporan pertama dikirim lebih dulu secara berurutan
     async function syncOfflineQueue(showFeedbackIfEmpty = false) {
       if (isSyncingQueue) return;
       if (!navigator.onLine) {
@@ -867,7 +876,6 @@
       let syncedCount = 0;
 
       try {
-        // Loop berurutan dari indeks 0 (laporan terlama / pertama masuk antrean)
         for (let i = 0; i < queue.length; i++) {
           const item = queue[i];
           const cleanPayload = { ...item };
@@ -881,11 +889,9 @@
               syncedCount++;
               await refreshQueueUI();
             } else {
-              // Hentikan batch jika server mengembalikan error agar urutan FIFO tetap terjaga
               break;
             }
           } catch (err) {
-            // Sinyal terputus di tengah sinkronisasi; stop agar urutan laporan berikutnya tidak melompat
             break;
           }
         }
@@ -1290,17 +1296,275 @@
       });
     }
 
-    const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'mp4', 'pdf', 'docx'];
-    document.getElementById('fileInput').addEventListener('change', (e) => {
-      for (const file of e.target.files) {
-        const ext = file.name.split('.').pop().toLowerCase();
+    // =========================================================================
+    // VALIDASI UKURAN, KOMPRESI FOTO & STEMPEL GEOPOSITIONING (WGS84)
+    // =========================================================================
+    function formatBytes(bytes) {
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function getCurrentTotalBytes() {
+      return selectedFiles.reduce((sum, f) => sum + (f.size || 0), 0);
+    }
+
+    function updateTotalSizeLabel() {
+      const el = document.getElementById('totalAttachmentSizeLabel');
+      if (el) {
+        el.textContent = `${formatBytes(getCurrentTotalBytes())} / 25 MB`;
+      }
+    }
+
+    function getCurrentGeoStampData() {
+      const latParsed = parseAndFormatDMS(document.getElementById('gpsLat')?.value || '', true);
+      const lonParsed = parseAndFormatDMS(document.getElementById('gpsLon')?.value || '', false);
+      const lokasi = (document.getElementById('lokasi')?.value || '').trim();
+      const pelapor = (document.getElementById('namaPelapor')?.value || '').trim();
+      const waktuRaw = document.getElementById('tanggalWaktu')?.value || '';
+      const waktuStr = waktuRaw ? waktuRaw.replace('T', ' ') : new Date().toLocaleString('id-ID');
+
+      let gpsText = 'GPS (WGS84): Belum dikunci';
+      if (!latParsed.empty && !lonParsed.empty && latParsed.valid && lonParsed.valid) {
+        gpsText = `WGS84: ${latParsed.formatted}, ${lonParsed.formatted} (${latParsed.decimal}, ${lonParsed.decimal})`;
+      }
+
+      return {
+        hasGps: !latParsed.empty && !lonParsed.empty && latParsed.valid && lonParsed.valid,
+        gpsText,
+        metaText: [
+          lokasi ? `Lokasi: ${lokasi}` : null,
+          pelapor ? `Pelapor: ${pelapor}` : null,
+          `Waktu: ${waktuStr}`
+        ].filter(Boolean).join(' • ')
+      };
+    }
+
+    function compressImageFile(file, maxBytes = MAX_PHOTO_BYTES, maxDimension = 1600) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          try {
+            let { width, height } = img;
+            if (width > maxDimension || height > maxDimension) {
+              if (width >= height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            let quality = 0.82;
+            const tryCompress = () => {
+              canvas.toBlob((blob) => {
+                if (!blob) {
+                  reject(new Error('Gagal mengompresi gambar.'));
+                  return;
+                }
+                if (blob.size <= maxBytes || quality <= 0.45) {
+                  const baseName = file.name.replace(/\.[^/.]+$/, '');
+                  const compressedFile = new File([blob], `${baseName}.jpg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                  });
+                  resolve(compressedFile);
+                } else {
+                  quality = Math.max(0.45, +(quality - 0.12).toFixed(2));
+                  tryCompress();
+                }
+              }, 'image/jpeg', quality);
+            };
+
+            tryCompress();
+          } catch (err) {
+            reject(err);
+          }
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error('File gambar tidak dapat dibaca.'));
+        };
+
+        img.src = objectUrl;
+      });
+    }
+
+    function stampGeoOnImageFile(file, geoData, maxBytes = MAX_PHOTO_BYTES, maxDimension = 1600) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          try {
+            let { width, height } = img;
+            if (width > maxDimension || height > maxDimension) {
+              if (width >= height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const fontSizeMain = Math.max(13, Math.round(width * 0.018));
+            const fontSizeSub = Math.max(11, Math.round(width * 0.014));
+            const padX = Math.max(12, Math.round(width * 0.015));
+            const padY = Math.max(8, Math.round(height * 0.012));
+            const lineGap = Math.max(4, Math.round(fontSizeMain * 0.3));
+            const boxHeight = fontSizeMain + fontSizeSub + lineGap + (padY * 2);
+            const boxY = Math.max(0, height - boxHeight);
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+            ctx.fillRect(0, boxY, width, boxHeight);
+
+            ctx.fillStyle = '#16a34a';
+            ctx.fillRect(0, boxY, Math.max(4, Math.round(width * 0.005)), boxHeight);
+
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `600 ${fontSizeMain}px Inter, Arial, sans-serif`;
+            ctx.fillText(geoData.gpsText, padX + 4, boxY + padY, width - (padX * 2) - 8);
+
+            if (geoData.metaText) {
+              ctx.fillStyle = '#cbd5e1';
+              ctx.font = `400 ${fontSizeSub}px Inter, Arial, sans-serif`;
+              ctx.fillText(
+                geoData.metaText,
+                padX + 4,
+                boxY + padY + fontSizeMain + lineGap,
+                width - (padX * 2) - 8
+              );
+            }
+
+            let quality = 0.82;
+            const tryEncode = () => {
+              canvas.toBlob((blob) => {
+                if (!blob) {
+                  reject(new Error('Gagal memproses gambar dengan geopositioning.'));
+                  return;
+                }
+                if (blob.size <= maxBytes || quality <= 0.45) {
+                  const baseName = file.name.replace(/\.[^/.]+$/, '');
+                  const stampedFile = new File([blob], `${baseName}_geo.jpg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                  });
+                  resolve(stampedFile);
+                } else {
+                  quality = Math.max(0.45, +(quality - 0.12).toFixed(2));
+                  tryEncode();
+                }
+              }, 'image/jpeg', quality);
+            };
+
+            tryEncode();
+          } catch (err) {
+            reject(err);
+          }
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error('File gambar tidak dapat dibaca.'));
+        };
+
+        img.src = objectUrl;
+      });
+    }
+
+    async function prepareFilesForSubmission(filesList) {
+      const geoData = getCurrentGeoStampData();
+      const processed = [];
+
+      for (const file of filesList) {
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const isImage = ['jpg', 'jpeg', 'png'].includes(ext) || file.type.startsWith('image/');
+
+        if (isImage) {
+          try {
+            const stamped = await stampGeoOnImageFile(file, geoData, MAX_PHOTO_BYTES);
+            processed.push(stamped);
+          } catch (err) {
+            console.warn('Gagal menambahkan stempel geo, gunakan file saat ini:', err);
+            processed.push(file);
+          }
+        } else {
+          processed.push(file);
+        }
+      }
+
+      return processed;
+    }
+
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const filesArr = Array.from(e.target.files || []);
+      e.target.value = '';
+
+      for (const file of filesArr) {
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
         if (!ALLOWED_EXT.includes(ext)) {
           alert(`Format ${file.name} tidak didukung.`);
           continue;
         }
-        selectedFiles.push(file);
+
+        const isImage = ['jpg', 'jpeg', 'png'].includes(ext) || file.type.startsWith('image/');
+        const isVideo = ext === 'mp4' || file.type.startsWith('video/');
+
+        let finalFile = file;
+
+        if (isImage) {
+          if (file.size > MAX_PHOTO_BYTES || file.size > 1.5 * 1024 * 1024) {
+            try {
+              const compressed = await compressImageFile(file, MAX_PHOTO_BYTES);
+              if (compressed.size <= MAX_PHOTO_BYTES) {
+                finalFile = compressed;
+              }
+            } catch (err) {
+              console.warn('Kompresi gagal, pakai file asli:', err);
+            }
+          }
+          if (finalFile.size > MAX_PHOTO_BYTES) {
+            alert(`Ukuran foto "${file.name}" (${formatBytes(finalFile.size)}) melebihi batas maksimal 5 MB.`);
+            continue;
+          }
+        } else if (isVideo) {
+          if (file.size > MAX_VIDEO_BYTES) {
+            alert(`Ukuran video "${file.name}" (${formatBytes(file.size)}) melebihi batas maksimal 15 MB agar sinkronisasi cepat.`);
+            continue;
+          }
+        } else {
+          if (file.size > MAX_DOC_BYTES) {
+            alert(`Ukuran dokumen "${file.name}" (${formatBytes(file.size)}) melebihi batas maksimal 5 MB.`);
+            continue;
+          }
+        }
+
+        if (getCurrentTotalBytes() + finalFile.size > MAX_TOTAL_BYTES) {
+          alert(`Penambahan "${finalFile.name}" (${formatBytes(finalFile.size)}) melebihi batas total 25 MB per laporan.`);
+          continue;
+        }
+
+        selectedFiles.push(finalFile);
       }
-      e.target.value = '';
+
       renderAttachmentGrid();
     });
 
@@ -1313,13 +1577,13 @@
       selectedFiles.forEach((file, idx) => {
         const box = document.createElement('div');
         box.className = 'relative w-20 h-20 rounded-xl border border-[#E2E8F0] bg-slate-50 flex flex-col items-center justify-center p-1 text-center overflow-hidden';
-        
+
         if (file.type.startsWith('image/')) {
           const url = URL.createObjectURL(file);
-          box.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg">`;
+          box.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg"><span class="absolute bottom-0 inset-x-0 bg-slate-900/65 text-white text-[8px] py-0.5">${formatBytes(file.size)}</span>`;
         } else {
           const icon = file.type.startsWith('video/') ? 'fa-file-video text-purple-600' : 'fa-file-pdf text-red-600';
-          box.innerHTML = `<i class="fa-solid ${icon} text-xl"></i><span class="text-[9px] text-slate-600 truncate w-full mt-1">${file.name}</span>`;
+          box.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span class="text-[9px] text-slate-600 truncate w-full mt-0.5">${file.name}</span><span class="text-[8px] text-slate-400">${formatBytes(file.size)}</span>`;
         }
 
         const delBtn = document.createElement('button');
@@ -1331,6 +1595,8 @@
 
         grid.appendChild(box);
       });
+
+      updateTotalSizeLabel();
     }
 
     function fileToBase64(file) {
@@ -1437,7 +1703,8 @@
       overlay.classList.add('flex');
 
       try {
-        const encodedFiles = await Promise.all(selectedFiles.map(fileToBase64));
+        const finalFiles = await prepareFilesForSubmission(selectedFiles);
+        const encodedFiles = await Promise.all(finalFiles.map(fileToBase64));
         const payload = {
           clientSubmissionId: generateClientSubmissionId(),
           namaPelapor, departemen, tanggalWaktu,
@@ -1447,7 +1714,6 @@
           files: encodedFiles
         };
 
-        // Cek apakah ada antrean sebelumnya agar urutan FIFO tetap terjaga (laporan pertama terkirim dulu)
         const existingQueue = await getQueueFIFO();
         if (!navigator.onLine || existingQueue.length > 0) {
           await enqueueReportFIFO(payload);
@@ -1479,9 +1745,9 @@
           throw new Error(result.message);
         }
       } catch (err) {
-        // Jika gagal kirim karena sinyal drop/timeout, masukkan ke antrean FIFO lokal
         try {
-          const encodedFiles = await Promise.all(selectedFiles.map(fileToBase64));
+          const finalFiles = await prepareFilesForSubmission(selectedFiles);
+          const encodedFiles = await Promise.all(finalFiles.map(fileToBase64));
           const fallbackPayload = {
             clientSubmissionId: generateClientSubmissionId(),
             namaPelapor, departemen, tanggalWaktu,
@@ -1602,7 +1868,7 @@
       document.getElementById('modalJenis').innerHTML = getJenisBadge(r.jenisKejadian);
       document.getElementById('modalLokasi').textContent = r.lokasi;
       document.getElementById('modalKoordinat').textContent = r.koordinatGps || '-';
-      
+
       const mapsLinkEl = document.getElementById('modalMapsLink');
       if (r.googleMapsUrl && r.googleMapsUrl.startsWith('http')) {
         mapsLinkEl.href = r.googleMapsUrl;
