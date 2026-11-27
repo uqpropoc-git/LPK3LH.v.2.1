@@ -15,7 +15,6 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
     .hse-green { background-color: #15803d; }
-    .hse-green-dark { background-color: #166534; }
     .hse-green-light { background-color: #dcfce7; color: #15803d; }
     .spinner {
       border: 4px solid rgba(255, 255, 255, 0.3);
@@ -26,7 +25,6 @@
       animation: spin 1s linear infinite;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    /* Hide scrollbar for clean mobile tabs */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -47,7 +45,7 @@
         <i class="fa-solid fa-check text-3xl"></i>
       </div>
       <h2 class="text-xl font-bold text-slate-900">Laporan Berhasil Terkirim!</h2>
-      <p class="text-sm text-slate-500 mt-1">Data dan lampiran bukti telah tersimpan di sistem HSE.</p>
+      <p class="text-sm text-slate-500 mt-1">Data, titik koordinat WGS84, dan bukti telah tersimpan.</p>
       
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 my-4">
         <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Nomor Tiket Laporan</span>
@@ -87,6 +85,15 @@
           <div><span class="text-xs text-slate-400 block">Waktu Kejadian</span><span id="modalWaktu" class="font-semibold">-</span></div>
           <div><span class="text-xs text-slate-400 block">Jenis</span><span id="modalJenis">-</span></div>
           <div class="col-span-2"><span class="text-xs text-slate-400 block">Lokasi</span><span id="modalLokasi" class="font-semibold">-</span></div>
+          <div class="col-span-2 pt-1 border-t border-slate-200/70 flex items-center justify-between gap-2">
+            <div>
+              <span class="text-xs text-slate-400 block">Koordinat GPS (WGS84)</span>
+              <span id="modalKoordinat" class="font-mono text-xs font-semibold text-slate-800">-</span>
+            </div>
+            <a id="modalMapsLink" href="#" target="_blank" class="hidden px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold items-center gap-1.5">
+              <i class="fa-solid fa-location-dot"></i> Lihat Peta
+            </a>
+          </div>
         </div>
 
         <div>
@@ -132,9 +139,8 @@
     </div>
   </div>
 
-  <!-- SIDEBAR DESKTOP (Sesuai Gambar 1-5) -->
+  <!-- SIDEBAR DESKTOP -->
   <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-slate-200 z-30">
-    <!-- Brand Logo -->
     <div class="p-5 flex items-center gap-3 border-b border-slate-100">
       <div class="w-10 h-10 hse-green rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-sm">
         <i class="fa-solid fa-plus"></i>
@@ -145,25 +151,20 @@
       </div>
     </div>
 
-    <!-- Navigation Menu -->
     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
       <button onclick="switchView('dashboard')" id="nav-desk-dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold hse-green-light transition">
         <i class="fa-solid fa-house w-5 text-center"></i> Dashboard
       </button>
-      
       <button onclick="switchView('lapor')" id="nav-desk-lapor" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
         <i class="fa-solid fa-file-circle-plus w-5 text-center"></i> Pelaporan Insiden
       </button>
-
       <button onclick="switchView('tindakan')" id="nav-desk-tindakan" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
         <i class="fa-solid fa-list-check w-5 text-center"></i> Tindakan & Daftar
       </button>
-
       <button onclick="switchView('statistik')" id="nav-desk-statistik" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
         <i class="fa-solid fa-chart-pie w-5 text-center"></i> Statistik
       </button>
 
-      <!-- Tombol Install PWA jika tersedia -->
       <div id="installPwaBannerDesk" class="hidden pt-4">
         <button onclick="installPWA()" class="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
           <i class="fa-solid fa-download"></i> Install Aplikasi PWA
@@ -171,21 +172,18 @@
       </div>
     </nav>
 
-    <!-- User Profile Footer -->
     <div class="p-4 border-t border-slate-100">
       <div class="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-        <div class="w-9 h-9 rounded-full hse-green text-white flex items-center justify-center font-bold text-sm">
-          HS
-        </div>
+        <div class="w-9 h-9 rounded-full hse-green text-white flex items-center justify-center font-bold text-sm">HS</div>
         <div class="truncate">
           <p class="text-xs font-bold text-slate-800 truncate">Petugas Lapangan</p>
-          <span class="inline-block text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded">HSE System</span>
+          <span class="inline-block text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded">WGS84 Ready</span>
         </div>
       </div>
     </div>
   </aside>
 
-  <!-- MOBILE TOP HEADER (Sesuai Gambar 6) -->
+  <!-- MOBILE TOP HEADER -->
   <header class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-30 flex items-center justify-between">
     <div class="flex items-center gap-2.5">
       <div class="w-8 h-8 hse-green rounded-lg flex items-center justify-center text-white font-bold">
@@ -208,23 +206,20 @@
     <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
 
       <!-- =================================================================== -->
-      <!-- VIEW 1: DASHBOARD (Sesuai Gambar 1 & Gambar 6 Mobile)               -->
+      <!-- VIEW 1: DASHBOARD                                                   -->
       <!-- =================================================================== -->
       <section id="view-dashboard" class="space-y-6">
-        
-        <!-- Mobile Welcome Card Hijau (Seperti Gambar 6) -->
         <div class="lg:hidden hse-green rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
           <div>
             <p class="text-emerald-100 text-xs">Selamat datang di Portal K3,</p>
             <h2 class="text-lg font-bold mt-0.5">Zero Harm untuk Semua</h2>
-            <span class="inline-block mt-2 text-[11px] bg-white/20 px-2.5 py-0.5 rounded-full">HSE Reporting PWA</span>
+            <span class="inline-block mt-2 text-[11px] bg-white/20 px-2.5 py-0.5 rounded-full">Auto-GPS WGS84 Aktif</span>
           </div>
           <div class="w-12 h-12 bg-white/15 rounded-full flex items-center justify-center text-2xl">
             <i class="fa-solid fa-helmet-safety"></i>
           </div>
         </div>
 
-        <!-- Desktop Header -->
         <div class="hidden lg:flex items-center justify-between">
           <div>
             <h2 class="text-2xl font-bold text-slate-900">Dashboard</h2>
@@ -240,62 +235,40 @@
           </div>
         </div>
 
-        <!-- 4 KPI Cards (Sesuai Gambar 1) -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-              </div>
-              <div>
-                <span class="text-xs font-medium text-slate-500">Total Laporan</span>
-                <p id="kpiTotal" class="text-2xl font-bold text-slate-900">0</p>
-              </div>
+              <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div><span class="text-xs font-medium text-slate-500">Total Laporan</span><p id="kpiTotal" class="text-2xl font-bold text-slate-900">0</p></div>
             </div>
             <p class="text-[11px] text-slate-400 mt-3">Seluruh kejadian tercatat</p>
           </div>
 
           <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-eye"></i>
-              </div>
-              <div>
-                <span class="text-xs font-medium text-slate-500">Near Miss</span>
-                <p id="kpiNearMiss" class="text-2xl font-bold text-slate-900">0</p>
-              </div>
+              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-eye"></i></div>
+              <div><span class="text-xs font-medium text-slate-500">Near Miss</span><p id="kpiNearMiss" class="text-2xl font-bold text-slate-900">0</p></div>
             </div>
             <p class="text-[11px] text-amber-600 font-medium mt-3">Pencegahan dini</p>
           </div>
 
           <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-circle-exclamation"></i>
-              </div>
-              <div>
-                <span class="text-xs font-medium text-slate-500">Incident & Accident</span>
-                <p id="kpiIncidentAccident" class="text-2xl font-bold text-slate-900">0</p>
-              </div>
+              <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-exclamation"></i></div>
+              <div><span class="text-xs font-medium text-slate-500">Incident & Accident</span><p id="kpiIncidentAccident" class="text-2xl font-bold text-slate-900">0</p></div>
             </div>
             <p class="text-[11px] text-red-600 font-medium mt-3">Perlu investigasi</p>
           </div>
 
           <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-circle-check"></i>
-              </div>
-              <div>
-                <span class="text-xs font-medium text-slate-500">Tindakan Selesai</span>
-                <p id="kpiClosed" class="text-2xl font-bold text-slate-900">0</p>
-              </div>
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-check"></i></div>
+              <div><span class="text-xs font-medium text-slate-500">Tindakan Selesai</span><p id="kpiClosed" class="text-2xl font-bold text-slate-900">0</p></div>
             </div>
             <p class="text-[11px] text-emerald-700 font-medium mt-3">Status Closed</p>
           </div>
         </div>
 
-        <!-- Menu Cepat Mobile (Sesuai Gambar 6) -->
         <div class="lg:hidden">
           <h3 class="text-sm font-bold text-slate-800 mb-2.5">Menu Cepat</h3>
           <div class="grid grid-cols-4 gap-2.5 text-center">
@@ -318,43 +291,26 @@
           </div>
         </div>
 
-        <!-- 3 Kolom Chart Ringkasan (Sesuai Gambar 1) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <!-- Chart 1: Ringkasan Insiden -->
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
             <h3 class="font-bold text-slate-800 text-sm mb-3">Ringkasan Jenis Kejadian</h3>
-            <div class="relative h-44 flex items-center justify-center">
-              <canvas id="chartJenis"></canvas>
-            </div>
-            <button onclick="switchView('tindakan')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">
-              Lihat Semua Laporan &rsaquo;
-            </button>
+            <div class="relative h-44 flex items-center justify-center"><canvas id="chartJenis"></canvas></div>
+            <button onclick="switchView('tindakan')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">Lihat Semua Laporan &rsaquo;</button>
           </div>
 
-          <!-- Chart 2: Insiden per Departemen -->
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
             <h3 class="font-bold text-slate-800 text-sm mb-3">Kejadian per Departemen</h3>
-            <div class="relative h-44 flex items-center justify-center">
-              <canvas id="chartDepartemen"></canvas>
-            </div>
-            <button onclick="switchView('statistik')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">
-              Lihat Statistik Lengkap &rsaquo;
-            </button>
+            <div class="relative h-44 flex items-center justify-center"><canvas id="chartDepartemen"></canvas></div>
+            <button onclick="switchView('statistik')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">Lihat Statistik Lengkap &rsaquo;</button>
           </div>
 
-          <!-- Chart 3: Status Tindakan -->
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
             <h3 class="font-bold text-slate-800 text-sm mb-3">Status Tindakan</h3>
-            <div class="relative h-44 flex items-center justify-center">
-              <canvas id="chartStatus"></canvas>
-            </div>
-            <button onclick="switchView('tindakan')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">
-              Lihat Semua Tindakan &rsaquo;
-            </button>
+            <div class="relative h-44 flex items-center justify-center"><canvas id="chartStatus"></canvas></div>
+            <button onclick="switchView('tindakan')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">Lihat Semua Tindakan &rsaquo;</button>
           </div>
         </div>
 
-        <!-- Laporan Terbaru List (Sesuai Gambar 1 & 6) -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold text-slate-800 text-base">Laporan Terbaru</h3>
@@ -367,7 +323,7 @@
       </section>
 
       <!-- =================================================================== -->
-      <!-- VIEW 2: FORM PELAPORAN INSIDEN (Sesuai Gambar 2 - Layout 2 Kolom)    -->
+      <!-- VIEW 2: FORM PELAPORAN INSIDEN + GPS WGS84                          -->
       <!-- =================================================================== -->
       <section id="view-lapor" class="hidden space-y-5">
         <div class="flex items-center justify-between">
@@ -386,7 +342,7 @@
         </div>
 
         <form id="hseForm" class="grid grid-cols-1 lg:grid-cols-3 gap-6" novalidate>
-          <!-- Kolom Kiri (2/3): Informasi & Detail Kejadian -->
+          <!-- Kolom Kiri (2/3) -->
           <div class="lg:col-span-2 space-y-6">
             <!-- Card 1: Informasi Kejadian -->
             <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
@@ -400,8 +356,8 @@
                 </div>
 
                 <div>
-                  <label class="block text-xs font-semibold text-slate-700 mb-1.5">Lokasi Kejadian <span class="text-red-500">*</span></label>
-                  <input type="text" id="lokasi" required placeholder="Contoh: Area Produksi - Line 1"
+                  <label class="block text-xs font-semibold text-slate-700 mb-1.5">Lokasi Kejadian (Nama Area) <span class="text-red-500">*</span></label>
+                  <input type="text" id="lokasi" required placeholder="Contoh: Pit Timur / Area Workshop B"
                     class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
                 </div>
 
@@ -425,6 +381,58 @@
                     class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
                 </div>
               </div>
+
+              <!-- BLOK KOORDINAT GPS (WGS84) -->
+              <div class="pt-3 border-t border-slate-100">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <div>
+                    <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <i class="fa-solid fa-satellite-dish text-emerald-700"></i>
+                      <span>Titik Koordinat GPS (Datum: WGS84)</span>
+                    </label>
+                    <p id="gpsModeHint" class="text-[11px] text-slate-500 mt-0.5">
+                      Mendeteksi perangkat...
+                    </p>
+                  </div>
+                  <button type="button" onclick="getDeviceGPS(true)" id="btnGetGps"
+                    class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-location-crosshairs" id="gpsIcon"></i>
+                    <span>Ambil GPS Perangkat</span>
+                  </button>
+                </div>
+
+                <!-- Status GPS Banner -->
+                <div id="gpsStatusBanner" class="hidden mb-2.5 px-3 py-2 rounded-lg text-xs flex items-center justify-between">
+                  <span id="gpsStatusText"></span>
+                  <a id="previewMapsLink" href="#" target="_blank" class="hidden font-semibold underline ml-2 shrink-0">Cek Peta &nearrow;</a>
+                </div>
+
+                <!-- Input Latitude & Longitude DMS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                  <div>
+                    <label for="gpsLat" class="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Lintang / Latitude (N / S)
+                    </label>
+                    <input type="text" id="gpsLat" placeholder="Ketik spasi: 0 30 15.5 S"
+                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-mono focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
+                  </div>
+
+                  <div>
+                    <label for="gpsLon" class="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Bujur / Longitude (E / W)
+                    </label>
+                    <input type="text" id="gpsLon" placeholder="Ketik spasi: 117 08 42.1 E"
+                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-mono focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
+                  </div>
+
+                  <div class="sm:col-span-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                    <span>
+                      <i class="fa-solid fa-keyboard text-slate-400 mr-1"></i>
+                      <strong>Input Cepat Manual:</strong> Cukup ketik angka dengan spasi (misal: <code class="bg-white px-1 py-0.5 rounded border border-slate-200 text-slate-700">0 30 15.5 S</code>), simbol <code class="text-slate-700">° ' "</code> terisi otomatis saat selesai mengetik.
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Card 2: Detail Kejadian -->
@@ -438,9 +446,8 @@
             </div>
           </div>
 
-          <!-- Kolom Kanan (1/3): Klasifikasi, Lampiran & Tindakan Awal (Sesuai Gambar 2) -->
+          <!-- Kolom Kanan (1/3) -->
           <div class="space-y-6">
-            <!-- Card 3: Klasifikasi Kejadian -->
             <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
               <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">3. Klasifikasi Kejadian <span class="text-red-500">*</span></h3>
               
@@ -480,7 +487,6 @@
               </div>
             </div>
 
-            <!-- Card 4: Lampiran Bukti (Kotak Upload + seperti Gambar 2) -->
             <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
               <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">4. Lampiran Bukti</h3>
               <p class="text-xs text-slate-500">Unggah Foto (JPG/PNG), Video (MP4), atau Dokumen (PDF/DOCX).</p>
@@ -490,7 +496,6 @@
                 class="hidden">
 
               <div class="flex flex-wrap gap-2.5" id="attachmentGrid">
-                <!-- Tombol Kotak + -->
                 <button type="button" onclick="document.getElementById('fileInput').click()"
                   class="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-600 hover:bg-emerald-50/50 flex flex-col items-center justify-center text-slate-400 hover:text-emerald-700 transition">
                   <i class="fa-solid fa-plus text-xl"></i>
@@ -500,14 +505,12 @@
               <p class="text-[11px] text-slate-400">Format: JPG, PNG, MP4, PDF, DOCX (Maks 25 MB total)</p>
             </div>
 
-            <!-- Card 5: Tindakan Awal -->
             <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
               <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">5. Tindakan Awal yang Dilakukan <span class="text-red-500">*</span></h3>
               <textarea id="tindakanAwal" rows="3" required placeholder="Contoh: Memberikan P3K, mengamankan area..."
                 class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none"></textarea>
             </div>
 
-            <!-- Tombol Submit -->
             <button type="submit" class="w-full py-3.5 px-5 hse-green hover:bg-emerald-800 text-white font-semibold rounded-xl shadow-md flex items-center justify-center gap-2 transition">
               <i class="fa-solid fa-paper-plane"></i> Kirim Laporan
             </button>
@@ -516,7 +519,7 @@
       </section>
 
       <!-- =================================================================== -->
-      <!-- VIEW 3: TINDAKAN & DAFTAR LAPORAN (Sesuai Gambar 3 & 4)             -->
+      <!-- VIEW 3: TINDAKAN & DAFTAR LAPORAN                                   -->
       <!-- =================================================================== -->
       <section id="view-tindakan" class="hidden space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -529,7 +532,6 @@
           </button>
         </div>
 
-        <!-- Filter Tabs & Search (Sesuai Gambar 4) -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
           <div class="flex gap-2 overflow-x-auto no-scrollbar border-b border-slate-100 pb-3">
             <button onclick="setQuickStatusFilter('ALL')" id="tab-status-ALL" class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold hse-green-light">Semua</button>
@@ -555,7 +557,6 @@
           </div>
         </div>
 
-        <!-- Tabel Desktop & Kartu Mobile -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -579,7 +580,7 @@
       </section>
 
       <!-- =================================================================== -->
-      <!-- VIEW 4: STATISTIK (Sesuai Gambar 5)                                 -->
+      <!-- VIEW 4: STATISTIK                                                   -->
       <!-- =================================================================== -->
       <section id="view-statistik" class="hidden space-y-6">
         <div>
@@ -603,7 +604,7 @@
     </div>
   </main>
 
-  <!-- MOBILE BOTTOM NAVIGATION BAR (Sesuai Gambar 6 dengan Tombol + Hijau di Tengah) -->
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
   <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-40 h-16 px-2 flex items-center justify-around">
     <button onclick="switchView('dashboard')" id="nav-mob-dashboard" class="mob-nav flex flex-col items-center justify-center text-emerald-700 w-16">
       <i class="fa-solid fa-house text-lg"></i>
@@ -615,7 +616,6 @@
       <span class="text-[10px] font-medium mt-1">Laporan</span>
     </button>
 
-    <!-- Floating Center + Button -->
     <button onclick="switchView('lapor')" class="-mt-6 w-14 h-14 rounded-full hse-green text-white shadow-lg flex items-center justify-center text-2xl border-4 border-slate-50 active:scale-95 transition">
       <i class="fa-solid fa-plus"></i>
     </button>
@@ -642,6 +642,179 @@
     let currentStatusFilter = 'ALL';
     let currentEditingTicketId = null;
     let charts = {};
+
+    // =========================================================================
+    // DETEKSI PERANGKAT (HP/TABLET vs LAPTOP) & KONVERSI GPS WGS84 (DD <-> DMS)
+    // =========================================================================
+    function isMobileOrTablet() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      // Deteksi iPadOS modern (macOS + layar sentuh)
+      const isIPadOS = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      return isMobileUA || isIPadOS;
+    }
+
+    // Konversi Decimal Degrees (WGS84) ke format DD° MM' SS.s" [Hemisphere]
+    function decimalToDMS(decimal, isLat) {
+      const hemisphere = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+      const absVal = Math.abs(decimal);
+      const deg = Math.floor(absVal);
+      const minFloat = (absVal - deg) * 60;
+      const min = Math.floor(minFloat);
+      const sec = ((minFloat - min) * 60).toFixed(1);
+
+      const degPad = String(deg).padStart(2, '0');
+      const minPad = String(min).padStart(2, '0');
+      const secPad = parseFloat(sec) < 10 ? '0' + sec : sec;
+
+      return `${degPad}° ${minPad}' ${secPad}" ${hemisphere}`;
+    }
+
+    // Parser input spasi atau DMS manual -> memformat jadi DD° MM' SS.s" [H] & menghitung Decimal Degrees
+    function parseAndFormatDMS(rawInput, isLat) {
+      if (!rawInput || !rawInput.trim()) return { valid: true, empty: true, formatted: '', decimal: null };
+
+      // Bersihkan simbol derajat/menit/detik jika user mengetiknya, pisahkan berdasarkan spasi/simbol
+      const cleaned = rawInput.trim().toUpperCase().replace(/[°'"″′]/g, ' ');
+      const tokens = cleaned.split(/\s+/).filter(Boolean);
+
+      // Harus terdiri dari 4 bagian: Derajat, Menit, Detik, Hemisphere (contoh: 0 30 15.5 S)
+      if (tokens.length !== 4) {
+        return { valid: false, error: 'Gunakan 4 bagian dipisah spasi: Derajat Menit Detik Arah (Contoh: 0 30 15.5 S)' };
+      }
+
+      const deg = parseFloat(tokens[0]);
+      const min = parseFloat(tokens[1]);
+      const sec = parseFloat(tokens[2]);
+      const hemi = tokens[3];
+
+      const validHemis = isLat ? ['N', 'S'] : ['E', 'W'];
+      const maxDeg = isLat ? 90 : 180;
+
+      if (isNaN(deg) || isNaN(min) || isNaN(sec)) {
+        return { valid: false, error: 'Nilai derajat, menit, dan detik harus berupa angka.' };
+      }
+      if (deg < 0 || deg > maxDeg || min < 0 || min >= 60 || sec < 0 || sec >= 60) {
+        return { valid: false, error: `Rentang koordinat tidak valid (Derajat 0-${maxDeg}, Menit/Detik 0-59.9).` };
+      }
+      if (!validHemis.includes(hemi)) {
+        return { valid: false, error: `Arah mata angin harus ${validHemis.join(' atau ')}.` };
+      }
+
+      let decimal = deg + (min / 60) + (sec / 3600);
+      if (hemi === 'S' || hemi === 'W') decimal = -decimal;
+
+      const degPad = String(Math.floor(deg)).padStart(2, '0');
+      const minPad = String(Math.floor(min)).padStart(2, '0');
+      const secFixed = sec.toFixed(1);
+      const secPad = parseFloat(secFixed) < 10 ? '0' + secFixed : secFixed;
+
+      return {
+        valid: true,
+        empty: false,
+        formatted: `${degPad}° ${minPad}' ${secPad}" ${hemi}`,
+        decimal: parseFloat(decimal.toFixed(6))
+      };
+    }
+
+    // Ambil GPS Perangkat (Datum WGS84)
+    function getDeviceGPS(isManualTrigger = false) {
+      const statusBanner = document.getElementById('gpsStatusBanner');
+      const statusText = document.getElementById('gpsStatusText');
+      const gpsIcon = document.getElementById('gpsIcon');
+
+      if (!('geolocation' in navigator)) {
+        showGpsStatus('Perangkat/browser tidak mendukung GPS otomatis. Silakan ketik koordinat secara manual.', 'warning');
+        return;
+      }
+
+      gpsIcon.classList.add('fa-spin');
+      showGpsStatus('Mengunci satelit GPS perangkat (WGS84)...', 'info');
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          gpsIcon.classList.remove('fa-spin');
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const acc = Math.round(position.coords.accuracy);
+
+          document.getElementById('gpsLat').value = decimalToDMS(lat, true);
+          document.getElementById('gpsLon').value = decimalToDMS(lon, false);
+
+          const mapsUrl = `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+          const previewLink = document.getElementById('previewMapsLink');
+          previewLink.href = mapsUrl;
+          previewLink.classList.remove('hidden');
+
+          showGpsStatus(`GPS Terkunci (WGS84 • Akurasi ±${acc} meter)`, 'success');
+        },
+        (error) => {
+          gpsIcon.classList.remove('fa-spin');
+          let msg = 'Gagal mengambil GPS otomatis. Silakan ketik manual dengan spasi.';
+          if (error.code === error.PERMISSION_DENIED) {
+            msg = 'Izin lokasi ditolak browser. Aktifkan izin lokasi atau ketik manual dengan spasi.';
+          } else if (error.code === error.TIMEOUT) {
+            msg = 'Sinyal GPS timeout. Coba klik "Ambil GPS Perangkat" lagi atau isi manual.';
+          }
+          if (isManualTrigger || isMobileOrTablet()) {
+            showGpsStatus(msg, 'warning');
+          }
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      );
+    }
+
+    function showGpsStatus(text, type) {
+      const banner = document.getElementById('gpsStatusBanner');
+      const statusText = document.getElementById('gpsStatusText');
+      banner.classList.remove('hidden', 'bg-blue-50', 'text-blue-700', 'bg-emerald-50', 'text-emerald-800', 'bg-amber-50', 'text-amber-800');
+
+      if (type === 'success') banner.classList.add('bg-emerald-50', 'text-emerald-800');
+      else if (type === 'warning') {
+        banner.classList.add('bg-amber-50', 'text-amber-800');
+        document.getElementById('previewMapsLink').classList.add('hidden');
+      } else {
+        banner.classList.add('bg-blue-50', 'text-blue-700');
+        document.getElementById('previewMapsLink').classList.add('hidden');
+      }
+      statusText.textContent = text;
+    }
+
+    // Auto-format input spasi saat pengguna selesai mengetik (event blur / Enter)
+    function setupManualDmsInputs() {
+      const latInput = document.getElementById('gpsLat');
+      const lonInput = document.getElementById('gpsLon');
+
+      const handleFormat = () => {
+        const latParsed = parseAndFormatDMS(latInput.value, true);
+        const lonParsed = parseAndFormatDMS(lonInput.value, false);
+
+        if (!latParsed.empty && latParsed.valid) latInput.value = latParsed.formatted;
+        if (!lonParsed.empty && lonParsed.valid) lonInput.value = lonParsed.formatted;
+
+        if (!latParsed.empty && !latParsed.valid) {
+          showGpsStatus('Format Latitude salah: ' + latParsed.error, 'warning');
+          return;
+        }
+        if (!lonParsed.empty && !lonParsed.valid) {
+          showGpsStatus('Format Longitude salah: ' + lonParsed.error, 'warning');
+          return;
+        }
+
+        if (!latParsed.empty && !lonParsed.empty && latParsed.valid && lonParsed.valid) {
+          const mapsUrl = `https://www.google.com/maps?q=${latParsed.decimal},${lonParsed.decimal}`;
+          const previewLink = document.getElementById('previewMapsLink');
+          previewLink.href = mapsUrl;
+          previewLink.classList.remove('hidden');
+          showGpsStatus(`Koordinat WGS84 Valid (${latParsed.decimal}, ${lonParsed.decimal})`, 'success');
+        }
+      };
+
+      latInput.addEventListener('blur', handleFormat);
+      lonInput.addEventListener('blur', handleFormat);
+      latInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); lonInput.focus(); } });
+      lonInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleFormat(); } });
+    }
 
     // =========================================================================
     // REGISTRASI PWA SERVICE WORKER & INSTALL PROMPT
@@ -706,12 +879,28 @@
 
       if (viewName === 'lapor') {
         setDefaultDateTime();
+        initGpsMode();
         if (preselectJenis) {
           const radio = document.querySelector(`input[name="jenisKejadian"][value="${preselectJenis}"]`);
           if (radio) radio.checked = true;
         }
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function initGpsMode() {
+      const hintEl = document.getElementById('gpsModeHint');
+      const latVal = document.getElementById('gpsLat').value;
+      const lonVal = document.getElementById('gpsLon').value;
+
+      if (isMobileOrTablet()) {
+        hintEl.textContent = 'Mode Perangkat Mobile/Tablet: Mengambil koordinat GPS secara otomatis...';
+        if (!latVal && !lonVal) {
+          getDeviceGPS(false);
+        }
+      } else {
+        hintEl.textContent = 'Mode Laptop/PC: Ketik koordinat manual dengan spasi atau klik "Ambil GPS Perangkat".';
+      }
     }
 
     function setDefaultDateTime() {
@@ -728,6 +917,7 @@
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
       setDefaultDateTime();
+      setupManualDmsInputs();
       fetchReports();
     });
 
@@ -767,7 +957,6 @@
       document.getElementById('kpiIncidentAccident').textContent = incident + accident;
       document.getElementById('kpiClosed').textContent = closed;
 
-      // Render Recent Reports (5 Teratas)
       const recentEl = document.getElementById('recentReportsList');
       if (allReports.length === 0) {
         recentEl.innerHTML = `<p class="text-sm text-slate-400 py-6 text-center">Belum ada laporan masuk.</p>`;
@@ -795,45 +984,27 @@
     }
 
     function renderCharts({ nearMiss, incident, accident, open, inProgress, closed }) {
-      // Hitung per Departemen
       const deptCounts = {};
       allReports.forEach(r => {
         const d = r.departemen || 'Lainnya';
         deptCounts[d] = (deptCounts[d] || 0) + 1;
       });
 
-      // 1. Chart Jenis Kejadian (Donut)
       buildChart('chartJenis', 'doughnut', {
         labels: ['Accident', 'Incident', 'Near Miss'],
-        datasets: [{
-          data: [accident, incident, nearMiss],
-          backgroundColor: ['#dc2626', '#f97316', '#f59e0b'],
-          borderWidth: 0
-        }]
+        datasets: [{ data: [accident, incident, nearMiss], backgroundColor: ['#dc2626', '#f97316', '#f59e0b'], borderWidth: 0 }]
       }, { cutout: '68%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } } } });
 
-      // 2. Chart Departemen (Bar)
       buildChart('chartDepartemen', 'bar', {
         labels: Object.keys(deptCounts),
-        datasets: [{
-          label: 'Jumlah',
-          data: Object.values(deptCounts),
-          backgroundColor: ['#dc2626', '#f97316', '#eab308', '#15803d', '#0284c7'],
-          borderRadius: 6
-        }]
+        datasets: [{ label: 'Jumlah', data: Object.values(deptCounts), backgroundColor: ['#dc2626', '#f97316', '#eab308', '#15803d', '#0284c7'], borderRadius: 6 }]
       }, { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } });
 
-      // 3. Chart Status Tindakan (Donut)
       buildChart('chartStatus', 'doughnut', {
         labels: ['Selesai', 'Dalam Proses', 'Open'],
-        datasets: [{
-          data: [closed, inProgress, open],
-          backgroundColor: ['#15803d', '#f59e0b', '#ef4444'],
-          borderWidth: 0
-        }]
+        datasets: [{ data: [closed, inProgress, open], backgroundColor: ['#15803d', '#f59e0b', '#ef4444'], borderWidth: 0 }]
       }, { cutout: '68%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } } } });
 
-      // Charts untuk Halaman Statistik
       buildChart('statChartJenis', 'pie', {
         labels: ['Accident', 'Incident', 'Near Miss'],
         datasets: [{ data: [accident, incident, nearMiss], backgroundColor: ['#dc2626', '#f97316', '#f59e0b'] }]
@@ -927,11 +1098,41 @@
       const kronologi = document.getElementById('kronologi').value.trim();
       const tindakanAwal = document.getElementById('tindakanAwal').value.trim();
 
+      // Validasi & Format GPS WGS84
+      const latParsed = parseAndFormatDMS(document.getElementById('gpsLat').value, true);
+      const lonParsed = parseAndFormatDMS(document.getElementById('gpsLon').value, false);
+
+      if (!latParsed.valid) {
+        document.getElementById('formAlertMsg').textContent = 'Koordinat Lintang (Latitude): ' + latParsed.error;
+        alertBox.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (!lonParsed.valid) {
+        document.getElementById('formAlertMsg').textContent = 'Koordinat Bujur (Longitude): ' + lonParsed.error;
+        alertBox.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if ((!latParsed.empty && lonParsed.empty) || (latParsed.empty && !lonParsed.empty)) {
+        document.getElementById('formAlertMsg').textContent = 'Harap isi kedua koordinat Lintang (N/S) dan Bujur (E/W), atau kosongkan keduanya.';
+        alertBox.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
       if (!namaPelapor || !departemen || !tanggalWaktu || !lokasi || !jenisEl || !kronologi || !tindakanAwal) {
         document.getElementById('formAlertMsg').textContent = 'Harap lengkapi seluruh kolom wajib bertanda bintang (*).';
         alertBox.classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
+      }
+
+      let koordinatGps = '-';
+      let googleMapsUrl = '-';
+      if (!latParsed.empty && !lonParsed.empty) {
+        koordinatGps = `${latParsed.formatted}, ${lonParsed.formatted}`;
+        googleMapsUrl = `https://www.google.com/maps?q=${latParsed.decimal},${lonParsed.decimal}`;
       }
 
       const overlay = document.getElementById('loadingOverlay');
@@ -946,7 +1147,10 @@
           body: JSON.stringify({
             namaPelapor, departemen, tanggalWaktu,
             jenisKejadian: jenisEl.value,
-            lokasi, kronologi, tindakanAwal,
+            lokasi,
+            koordinatGps,
+            googleMapsUrl,
+            kronologi, tindakanAwal,
             files: encodedFiles
           })
         });
@@ -958,6 +1162,7 @@
           document.getElementById('successModal').classList.remove('hidden');
           document.getElementById('successModal').classList.add('flex');
           document.getElementById('hseForm').reset();
+          document.getElementById('gpsStatusBanner').classList.add('hidden');
           selectedFiles = [];
           renderAttachmentGrid();
           fetchReports();
@@ -1067,6 +1272,18 @@
       document.getElementById('modalWaktu').textContent = r.tanggalWaktu;
       document.getElementById('modalJenis').innerHTML = getJenisBadge(r.jenisKejadian);
       document.getElementById('modalLokasi').textContent = r.lokasi;
+      document.getElementById('modalKoordinat').textContent = r.koordinatGps || '-';
+      
+      const mapsLinkEl = document.getElementById('modalMapsLink');
+      if (r.googleMapsUrl && r.googleMapsUrl.startsWith('http')) {
+        mapsLinkEl.href = r.googleMapsUrl;
+        mapsLinkEl.classList.remove('hidden');
+        mapsLinkEl.classList.add('inline-flex');
+      } else {
+        mapsLinkEl.classList.add('hidden');
+        mapsLinkEl.classList.remove('inline-flex');
+      }
+
       document.getElementById('modalKronologi').textContent = r.kronologi;
       document.getElementById('modalTindakan').textContent = r.tindakanAwal;
       document.getElementById('modalSelectStatus').value = r.statusTindakLanjut || 'Open';
@@ -1126,7 +1343,1379 @@
       }
     });
 
-    // Helper Styling
+    function getJenisIcon(j) {
+      if (j === 'Accident') return 'fa-kit-medical';
+      if (j === 'Incident') return 'fa-circle-exclamation';
+      return 'fa-triangle-exclamation';
+    }
+    function getJenisIconBg(j) {
+      if (j === 'Accident') return 'bg-red-100 text-red-600';
+      if (j === 'Incident') return 'bg-orange-100 text-orange-600';
+      return 'bg-amber-100 text-amber-600';
+    }
+    function getJenisBadge(j) {
+      if (j === 'Accident') return `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Accident</span>`;
+      if (j === 'Incident') return `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Incident</span>`;
+      return `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Near Miss</span>`;
+    }
+    function getStatusBadge(s) {
+      if (s === 'Closed') return `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Selesai</span>`;
+      if (s === 'In Progress') return `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Dalam Proses</span>`;
+      return `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Open</span>`;
+    }
+    function escapeHtml(str) {
+      if (!str) return '';
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#15803d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>HSE Management System</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .hse-green { background-color: #15803d; }
+    .hse-green-light { background-color: #dcfce7; color: #15803d; }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid #ffffff;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col lg:flex-row pb-20 lg:pb-0">
+
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex-col items-center justify-center text-white p-4">
+    <div class="spinner mb-4"></div>
+    <h3 class="text-lg font-semibold">Memproses Data HSE...</h3>
+    <p id="loadingStatusText" class="text-sm text-slate-300 mt-1 text-center max-w-md">Mohon tunggu sebentar.</p>
+  </div>
+
+  <!-- MODAL SUKSES SUBMIT LAPORAN -->
+  <div id="successModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-check text-3xl"></i>
+      </div>
+      <h2 class="text-xl font-bold text-slate-900">Laporan Berhasil Terkirim!</h2>
+      <p class="text-sm text-slate-500 mt-1">Data, titik koordinat WGS84, dan bukti telah tersimpan.</p>
+      
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 my-4">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Nomor Tiket Laporan</span>
+        <div class="flex items-center justify-center gap-2 mt-1">
+          <span id="displayTicketId" class="text-xl font-mono font-bold text-emerald-700">HSE-0000</span>
+          <button onclick="copyTicketId()" class="text-slate-400 hover:text-emerald-700 p-1"><i class="fa-regular fa-copy"></i></button>
+        </div>
+        <p id="copyFeedback" class="text-xs text-emerald-600 hidden mt-1">Disalin!</p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <a id="driveFolderLink" href="#" target="_blank" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl text-sm transition flex items-center justify-center gap-2">
+          <i class="fa-brands fa-google-drive text-emerald-700"></i> Buka Folder Bukti Drive
+        </a>
+        <button onclick="closeSuccessAndGoDashboard()" class="w-full py-2.5 px-4 hse-green hover:bg-emerald-800 text-white font-semibold rounded-xl text-sm transition">
+          Kembali ke Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL & UPDATE TINDAKAN (CAPA) -->
+  <div id="detailModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 hse-green text-white flex items-center justify-between">
+        <div>
+          <span id="modalTicketId" class="font-mono text-xs bg-white/20 px-2 py-0.5 rounded">HSE-0000</span>
+          <h2 class="text-lg font-bold mt-1">Detail Laporan & Tindakan</h2>
+        </div>
+        <button onclick="closeDetailModal()" class="text-white/80 hover:text-white p-1.5"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 text-sm">
+        <div class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div><span class="text-xs text-slate-400 block">Pelapor</span><span id="modalPelapor" class="font-semibold">-</span></div>
+          <div><span class="text-xs text-slate-400 block">Departemen</span><span id="modalDepartemen" class="font-semibold">-</span></div>
+          <div><span class="text-xs text-slate-400 block">Waktu Kejadian</span><span id="modalWaktu" class="font-semibold">-</span></div>
+          <div><span class="text-xs text-slate-400 block">Jenis</span><span id="modalJenis">-</span></div>
+          <div class="col-span-2"><span class="text-xs text-slate-400 block">Lokasi</span><span id="modalLokasi" class="font-semibold">-</span></div>
+          <div class="col-span-2 pt-1 border-t border-slate-200/70 flex items-center justify-between gap-2">
+            <div>
+              <span class="text-xs text-slate-400 block">Koordinat GPS (WGS84)</span>
+              <span id="modalKoordinat" class="font-mono text-xs font-semibold text-slate-800">-</span>
+            </div>
+            <a id="modalMapsLink" href="#" target="_blank" class="hidden px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-semibold items-center gap-1.5">
+              <i class="fa-solid fa-location-dot"></i> Lihat Peta
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-slate-700 mb-1">Deskripsi Kronologi</h4>
+          <p id="modalKronologi" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-700 whitespace-pre-line">-</p>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-slate-700 mb-1">Tindakan Perbaikan Awal</h4>
+          <p id="modalTindakan" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-700 whitespace-pre-line">-</p>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-slate-700 mb-1">Lampiran Bukti (Google Drive)</h4>
+          <div id="modalAttachments" class="space-y-1.5"></div>
+        </div>
+
+        <form id="statusUpdateForm" class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-3">
+          <h4 class="font-bold text-emerald-900 flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-check text-emerald-700"></i> Update Status Tindak Lanjut
+          </h4>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+            <select id="modalSelectStatus" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white outline-none">
+              <option value="Open">Open (Menunggu)</option>
+              <option value="In Progress">Dalam Proses (Investigasi/Perbaikan)</option>
+              <option value="Closed">Selesai (Closed)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan Tindak Lanjut</label>
+            <textarea id="modalCatatanStatus" rows="2" placeholder="Catatan hasil investigasi / perbaikan..."
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white outline-none"></textarea>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeDetailModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg font-medium">Batal</button>
+            <button type="submit" id="saveStatusBtn" class="px-4 py-2 hse-green hover:bg-emerald-800 text-white rounded-lg font-semibold flex items-center gap-1.5">
+              <i class="fa-solid fa-check"></i> Tandai & Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR DESKTOP -->
+  <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-slate-200 z-30">
+    <div class="p-5 flex items-center gap-3 border-b border-slate-100">
+      <div class="w-10 h-10 hse-green rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-sm">
+        <i class="fa-solid fa-plus"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg text-slate-900 leading-none">HSE</h1>
+        <p class="text-[11px] text-slate-500 mt-0.5">Health, Safety & Environment</p>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <button onclick="switchView('dashboard')" id="nav-desk-dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold hse-green-light transition">
+        <i class="fa-solid fa-house w-5 text-center"></i> Dashboard
+      </button>
+      <button onclick="switchView('lapor')" id="nav-desk-lapor" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+        <i class="fa-solid fa-file-circle-plus w-5 text-center"></i> Pelaporan Insiden
+      </button>
+      <button onclick="switchView('tindakan')" id="nav-desk-tindakan" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+        <i class="fa-solid fa-list-check w-5 text-center"></i> Tindakan & Daftar
+      </button>
+      <button onclick="switchView('statistik')" id="nav-desk-statistik" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Statistik
+      </button>
+
+      <div id="installPwaBannerDesk" class="hidden pt-4">
+        <button onclick="installPWA()" class="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
+          <i class="fa-solid fa-download"></i> Install Aplikasi PWA
+        </button>
+      </div>
+    </nav>
+
+    <div class="p-4 border-t border-slate-100">
+      <div class="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+        <div class="w-9 h-9 rounded-full hse-green text-white flex items-center justify-center font-bold text-sm">HS</div>
+        <div class="truncate">
+          <p class="text-xs font-bold text-slate-800 truncate">Petugas Lapangan</p>
+          <span class="inline-block text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded">WGS84 Ready</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MOBILE TOP HEADER -->
+  <header class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-30 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 hse-green rounded-lg flex items-center justify-center text-white font-bold">
+        <i class="fa-solid fa-plus"></i>
+      </div>
+      <span class="font-bold text-slate-900">HSE Mobile</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="installPwaBtnMobile" onclick="installPWA()" class="hidden text-xs font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-1.5 rounded-lg">
+        <i class="fa-solid fa-download mr-1"></i> Install
+      </button>
+      <button onclick="fetchReports()" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+        <i id="mobileRefreshIcon" class="fa-solid fa-rotate-right text-sm"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-1 lg:pl-64">
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+      <!-- =================================================================== -->
+      <!-- VIEW 1: DASHBOARD                                                   -->
+      <!-- =================================================================== -->
+      <section id="view-dashboard" class="space-y-6">
+        <div class="lg:hidden hse-green rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
+          <div>
+            <p class="text-emerald-100 text-xs">Selamat datang di Portal K3,</p>
+            <h2 class="text-lg font-bold mt-0.5">Zero Harm untuk Semua</h2>
+            <span class="inline-block mt-2 text-[11px] bg-white/20 px-2.5 py-0.5 rounded-full">Auto-GPS WGS84 Aktif</span>
+          </div>
+          <div class="w-12 h-12 bg-white/15 rounded-full flex items-center justify-center text-2xl">
+            <i class="fa-solid fa-helmet-safety"></i>
+          </div>
+        </div>
+
+        <div class="hidden lg:flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">Dashboard</h2>
+            <p class="text-sm text-slate-500">Ringkasan kinerja HSE dan status pelaporan</p>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <button onclick="fetchReports()" class="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-medium flex items-center gap-2 shadow-xs">
+              <i id="deskRefreshIcon" class="fa-solid fa-rotate-right"></i> Refresh Data
+            </button>
+            <button onclick="switchView('lapor')" class="px-4 py-2 hse-green hover:bg-emerald-800 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-sm">
+              <i class="fa-solid fa-plus"></i> Buat Laporan
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div><span class="text-xs font-medium text-slate-500">Total Laporan</span><p id="kpiTotal" class="text-2xl font-bold text-slate-900">0</p></div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-3">Seluruh kejadian tercatat</p>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-eye"></i></div>
+              <div><span class="text-xs font-medium text-slate-500">Near Miss</span><p id="kpiNearMiss" class="text-2xl font-bold text-slate-900">0</p></div>
+            </div>
+            <p class="text-[11px] text-amber-600 font-medium mt-3">Pencegahan dini</p>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-exclamation"></i></div>
+              <div><span class="text-xs font-medium text-slate-500">Incident & Accident</span><p id="kpiIncidentAccident" class="text-2xl font-bold text-slate-900">0</p></div>
+            </div>
+            <p class="text-[11px] text-red-600 font-medium mt-3">Perlu investigasi</p>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-check"></i></div>
+              <div><span class="text-xs font-medium text-slate-500">Tindakan Selesai</span><p id="kpiClosed" class="text-2xl font-bold text-slate-900">0</p></div>
+            </div>
+            <p class="text-[11px] text-emerald-700 font-medium mt-3">Status Closed</p>
+          </div>
+        </div>
+
+        <div class="lg:hidden">
+          <h3 class="text-sm font-bold text-slate-800 mb-2.5">Menu Cepat</h3>
+          <div class="grid grid-cols-4 gap-2.5 text-center">
+            <button onclick="switchView('lapor', 'Near Miss')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5">
+              <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <span class="text-[11px] font-semibold text-slate-700">Near Miss</span>
+            </button>
+            <button onclick="switchView('lapor', 'Incident')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5">
+              <div class="w-9 h-9 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><i class="fa-solid fa-circle-exclamation"></i></div>
+              <span class="text-[11px] font-semibold text-slate-700">Incident</span>
+            </button>
+            <button onclick="switchView('lapor', 'Accident')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5">
+              <div class="w-9 h-9 rounded-lg bg-red-100 text-red-600 flex items-center justify-center"><i class="fa-solid fa-kit-medical"></i></div>
+              <span class="text-[11px] font-semibold text-slate-700">Accident</span>
+            </button>
+            <button onclick="switchView('tindakan')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5">
+              <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center"><i class="fa-solid fa-list-check"></i></div>
+              <span class="text-[11px] font-semibold text-slate-700">Tindakan</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <h3 class="font-bold text-slate-800 text-sm mb-3">Ringkasan Jenis Kejadian</h3>
+            <div class="relative h-44 flex items-center justify-center"><canvas id="chartJenis"></canvas></div>
+            <button onclick="switchView('tindakan')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">Lihat Semua Laporan &rsaquo;</button>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <h3 class="font-bold text-slate-800 text-sm mb-3">Kejadian per Departemen</h3>
+            <div class="relative h-44 flex items-center justify-center"><canvas id="chartDepartemen"></canvas></div>
+            <button onclick="switchView('statistik')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">Lihat Statistik Lengkap &rsaquo;</button>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <h3 class="font-bold text-slate-800 text-sm mb-3">Status Tindakan</h3>
+            <div class="relative h-44 flex items-center justify-center"><canvas id="chartStatus"></canvas></div>
+            <button onclick="switchView('tindakan')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-slate-100 text-emerald-700 font-semibold text-xs rounded-xl transition">Lihat Semua Tindakan &rsaquo;</button>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-slate-800 text-base">Laporan Terbaru</h3>
+            <button onclick="switchView('tindakan')" class="text-xs font-semibold text-emerald-700 hover:underline">Lihat semua &rsaquo;</button>
+          </div>
+          <div id="recentReportsList" class="divide-y divide-slate-100">
+            <p class="text-sm text-slate-400 py-4 text-center">Memuat data...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 2: FORM PELAPORAN INSIDEN + GPS WGS84                          -->
+      <!-- =================================================================== -->
+      <section id="view-lapor" class="hidden space-y-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs text-slate-400 mb-1">Pelaporan &rsaquo; Insiden &rsaquo; <span class="text-emerald-700 font-medium">Buat Laporan</span></div>
+            <h2 class="text-2xl font-bold text-slate-900">Pelaporan Insiden</h2>
+            <p class="text-xs sm:text-sm text-slate-500">Laporkan kejadian incident, accident, atau near miss di area kerja</p>
+          </div>
+          <button type="button" onclick="switchView('dashboard')" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">
+            <i class="fa-solid fa-xmark"></i> Batal
+          </button>
+        </div>
+
+        <div id="formAlert" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl text-sm text-red-700">
+          <p id="formAlertMsg" class="font-medium"></p>
+        </div>
+
+        <form id="hseForm" class="grid grid-cols-1 lg:grid-cols-3 gap-6" novalidate>
+          <!-- Kolom Kiri (2/3) -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- Card 1: Informasi Kejadian -->
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">1. Informasi Kejadian</h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal & Waktu Kejadian <span class="text-red-500">*</span></label>
+                  <input type="datetime-local" id="tanggalWaktu" required
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1.5">Lokasi Kejadian (Nama Area) <span class="text-red-500">*</span></label>
+                  <input type="text" id="lokasi" required placeholder="Contoh: Pit Timur / Area Workshop B"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1.5">Departemen / Area <span class="text-red-500">*</span></label>
+                  <select id="departemen" required
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
+                    <option value="">-- Pilih Departemen --</option>
+                    <option value="Produksi / Operasional">Produksi / Operasional</option>
+                    <option value="Maintenance / Engineering">Maintenance / Engineering</option>
+                    <option value="HSE / K3">HSE / K3</option>
+                    <option value="Gudang & Logistik">Gudang & Logistik</option>
+                    <option value="Kantor / HRGA">Kantor / HRGA</option>
+                    <option value="Kontraktor">Kontraktor</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1.5">Dilaporkan Oleh (Nama Lengkap) <span class="text-red-500">*</span></label>
+                  <input type="text" id="namaPelapor" required placeholder="Masukkan nama pelapor"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
+                </div>
+              </div>
+
+              <!-- BLOK KOORDINAT GPS (WGS84) -->
+              <div class="pt-3 border-t border-slate-100">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <div>
+                    <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <i class="fa-solid fa-satellite-dish text-emerald-700"></i>
+                      <span>Titik Koordinat GPS (Datum: WGS84)</span>
+                    </label>
+                    <p id="gpsModeHint" class="text-[11px] text-slate-500 mt-0.5">
+                      Mendeteksi perangkat...
+                    </p>
+                  </div>
+                  <button type="button" onclick="getDeviceGPS(true)" id="btnGetGps"
+                    class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-location-crosshairs" id="gpsIcon"></i>
+                    <span>Ambil GPS Perangkat</span>
+                  </button>
+                </div>
+
+                <!-- Status GPS Banner -->
+                <div id="gpsStatusBanner" class="hidden mb-2.5 px-3 py-2 rounded-lg text-xs flex items-center justify-between">
+                  <span id="gpsStatusText"></span>
+                  <a id="previewMapsLink" href="#" target="_blank" class="hidden font-semibold underline ml-2 shrink-0">Cek Peta &nearrow;</a>
+                </div>
+
+                <!-- Input Latitude & Longitude DMS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                  <div>
+                    <label for="gpsLat" class="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Lintang / Latitude (N / S)
+                    </label>
+                    <input type="text" id="gpsLat" placeholder="Ketik spasi: 0 30 15.5 S"
+                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-mono focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
+                  </div>
+
+                  <div>
+                    <label for="gpsLon" class="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Bujur / Longitude (E / W)
+                    </label>
+                    <input type="text" id="gpsLon" placeholder="Ketik spasi: 117 08 42.1 E"
+                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-mono focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
+                  </div>
+
+                  <div class="sm:col-span-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                    <span>
+                      <i class="fa-solid fa-keyboard text-slate-400 mr-1"></i>
+                      <strong>Input Cepat Manual:</strong> Cukup ketik angka dengan spasi (misal: <code class="bg-white px-1 py-0.5 rounded border border-slate-200 text-slate-700">0 30 15.5 S</code>), simbol <code class="text-slate-700">° ' "</code> terisi otomatis saat selesai mengetik.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Detail Kejadian -->
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">2. Detail Kronologi</h3>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Deskripsi Kronologi Kejadian <span class="text-red-500">*</span></label>
+                <textarea id="kronologi" rows="4" required placeholder="Jelaskan urutan kejadian secara rinci..."
+                  class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kolom Kanan (1/3) -->
+          <div class="space-y-6">
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">3. Klasifikasi Kejadian <span class="text-red-500">*</span></h3>
+              
+              <div class="space-y-2.5">
+                <label class="cursor-pointer block">
+                  <input type="radio" name="jenisKejadian" value="Near Miss" class="peer sr-only" required>
+                  <div class="p-3 rounded-xl border border-slate-200 peer-checked:border-amber-500 peer-checked:bg-amber-50/70 flex items-center justify-between transition">
+                    <div>
+                      <span class="font-bold text-sm text-slate-800 block">Near Miss</span>
+                      <span class="text-[11px] text-slate-500">Hampir celaka / kondisi tidak aman</span>
+                    </div>
+                    <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer block">
+                  <input type="radio" name="jenisKejadian" value="Incident" class="peer sr-only">
+                  <div class="p-3 rounded-xl border border-slate-200 peer-checked:border-orange-500 peer-checked:bg-orange-50/70 flex items-center justify-between transition">
+                    <div>
+                      <span class="font-bold text-sm text-slate-800 block">Incident</span>
+                      <span class="text-[11px] text-slate-500">Kejadian / kerusakan ringan</span>
+                    </div>
+                    <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer block">
+                  <input type="radio" name="jenisKejadian" value="Accident" class="peer sr-only">
+                  <div class="p-3 rounded-xl border border-slate-200 peer-checked:border-red-600 peer-checked:bg-red-50/70 flex items-center justify-between transition">
+                    <div>
+                      <span class="font-bold text-sm text-slate-800 block">Accident</span>
+                      <span class="text-[11px] text-slate-500">Kecelakaan kerja / cedera</span>
+                    </div>
+                    <span class="w-3 h-3 rounded-full bg-red-600"></span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">4. Lampiran Bukti</h3>
+              <p class="text-xs text-slate-500">Unggah Foto (JPG/PNG), Video (MP4), atau Dokumen (PDF/DOCX).</p>
+
+              <input type="file" id="fileInput" multiple
+                accept=".jpg,.jpeg,.png,.mp4,.pdf,.docx,image/jpeg,image/png,video/mp4,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                class="hidden">
+
+              <div class="flex flex-wrap gap-2.5" id="attachmentGrid">
+                <button type="button" onclick="document.getElementById('fileInput').click()"
+                  class="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-600 hover:bg-emerald-50/50 flex flex-col items-center justify-center text-slate-400 hover:text-emerald-700 transition">
+                  <i class="fa-solid fa-plus text-xl"></i>
+                  <span class="text-[10px] mt-1 font-medium">Tambah</span>
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-400">Format: JPG, PNG, MP4, PDF, DOCX (Maks 25 MB total)</p>
+            </div>
+
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
+              <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">5. Tindakan Awal yang Dilakukan <span class="text-red-500">*</span></h3>
+              <textarea id="tindakanAwal" rows="3" required placeholder="Contoh: Memberikan P3K, mengamankan area..."
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 px-5 hse-green hover:bg-emerald-800 text-white font-semibold rounded-xl shadow-md flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-paper-plane"></i> Kirim Laporan
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 3: TINDAKAN & DAFTAR LAPORAN                                   -->
+      <!-- =================================================================== -->
+      <section id="view-tindakan" class="hidden space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">Tindakan & Daftar Laporan</h2>
+            <p class="text-sm text-slate-500">Kelola dan pantau tindak lanjut dari laporan kejadian</p>
+          </div>
+          <button onclick="switchView('lapor')" class="px-4 py-2.5 hse-green hover:bg-emerald-800 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-plus"></i> Buat Laporan Baru
+          </button>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+          <div class="flex gap-2 overflow-x-auto no-scrollbar border-b border-slate-100 pb-3">
+            <button onclick="setQuickStatusFilter('ALL')" id="tab-status-ALL" class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold hse-green-light">Semua</button>
+            <button onclick="setQuickStatusFilter('Open')" id="tab-status-Open" class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100">Open</button>
+            <button onclick="setQuickStatusFilter('In Progress')" id="tab-status-In Progress" class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100">Dalam Proses</button>
+            <button onclick="setQuickStatusFilter('Closed')" id="tab-status-Closed" class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100">Selesai</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="sm:col-span-2 relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+              <input type="text" id="searchInput" placeholder="Cari nomor tiket, pelapor, lokasi..."
+                class="w-full pl-10 pr-4 py-2 text-sm border border-slate-300 rounded-xl focus:border-emerald-600 outline-none">
+            </div>
+            <div>
+              <select id="filterJenis" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:border-emerald-600 outline-none">
+                <option value="ALL">Semua Jenis Kejadian</option>
+                <option value="Near Miss">Near Miss</option>
+                <option value="Incident">Incident</option>
+                <option value="Accident">Accident</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="py-3.5 px-4">No. Tiket</th>
+                  <th class="py-3.5 px-4">Jenis</th>
+                  <th class="py-3.5 px-4">Kronologi & Lokasi</th>
+                  <th class="py-3.5 px-4">Pelapor</th>
+                  <th class="py-3.5 px-4">Status</th>
+                  <th class="py-3.5 px-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+            </table>
+          </div>
+          <div id="tableEmpty" class="hidden py-12 text-center text-slate-400 text-sm">
+            Tidak ada data laporan yang sesuai filter.
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 4: STATISTIK                                                   -->
+      <!-- =================================================================== -->
+      <section id="view-statistik" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">Statistik Kinerja HSE</h2>
+          <p class="text-sm text-slate-500">Analisis distribusi kejadian dan penyelesaian tindakan</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <h3 class="font-bold text-slate-800 mb-4">Distribusi Berdasarkan Jenis Kejadian</h3>
+            <div class="h-64"><canvas id="statChartJenis"></canvas></div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <h3 class="font-bold text-slate-800 mb-4">Distribusi Berdasarkan Departemen</h3>
+            <div class="h-64"><canvas id="statChartDept"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-40 h-16 px-2 flex items-center justify-around">
+    <button onclick="switchView('dashboard')" id="nav-mob-dashboard" class="mob-nav flex flex-col items-center justify-center text-emerald-700 w-16">
+      <i class="fa-solid fa-house text-lg"></i>
+      <span class="text-[10px] font-semibold mt-1">Beranda</span>
+    </button>
+
+    <button onclick="switchView('tindakan')" id="nav-mob-tindakan" class="mob-nav flex flex-col items-center justify-center text-slate-400 w-16">
+      <i class="fa-solid fa-file-lines text-lg"></i>
+      <span class="text-[10px] font-medium mt-1">Laporan</span>
+    </button>
+
+    <button onclick="switchView('lapor')" class="-mt-6 w-14 h-14 rounded-full hse-green text-white shadow-lg flex items-center justify-center text-2xl border-4 border-slate-50 active:scale-95 transition">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <button onclick="switchView('statistik')" id="nav-mob-statistik" class="mob-nav flex flex-col items-center justify-center text-slate-400 w-16">
+      <i class="fa-solid fa-chart-simple text-lg"></i>
+      <span class="text-[10px] font-medium mt-1">Statistik</span>
+    </button>
+
+    <button onclick="installPWA()" class="mob-nav flex flex-col items-center justify-center text-slate-400 w-16">
+      <i class="fa-solid fa-mobile-screen text-lg"></i>
+      <span class="text-[10px] font-medium mt-1">App PWA</span>
+    </button>
+  </nav>
+
+  <script>
+    // =========================================================================
+    // KONFIGURASI BACKEND GOOGLE APPS SCRIPT
+    // =========================================================================
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzLA6uTdAma718oP-lk04bjTqX2j7IuZfS3INs4lZ9TQrjBUNWWPyZ5mdxGsRsQrVQj/exec';
+
+    let allReports = [];
+    let selectedFiles = [];
+    let currentStatusFilter = 'ALL';
+    let currentEditingTicketId = null;
+    let charts = {};
+
+    // =========================================================================
+    // DETEKSI PERANGKAT (HP/TABLET vs LAPTOP) & KONVERSI GPS WGS84 (DD <-> DMS)
+    // =========================================================================
+    function isMobileOrTablet() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      // Deteksi iPadOS modern (macOS + layar sentuh)
+      const isIPadOS = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      return isMobileUA || isIPadOS;
+    }
+
+    // Konversi Decimal Degrees (WGS84) ke format DD° MM' SS.s" [Hemisphere]
+    function decimalToDMS(decimal, isLat) {
+      const hemisphere = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+      const absVal = Math.abs(decimal);
+      const deg = Math.floor(absVal);
+      const minFloat = (absVal - deg) * 60;
+      const min = Math.floor(minFloat);
+      const sec = ((minFloat - min) * 60).toFixed(1);
+
+      const degPad = String(deg).padStart(2, '0');
+      const minPad = String(min).padStart(2, '0');
+      const secPad = parseFloat(sec) < 10 ? '0' + sec : sec;
+
+      return `${degPad}° ${minPad}' ${secPad}" ${hemisphere}`;
+    }
+
+    // Parser input spasi atau DMS manual -> memformat jadi DD° MM' SS.s" [H] & menghitung Decimal Degrees
+    function parseAndFormatDMS(rawInput, isLat) {
+      if (!rawInput || !rawInput.trim()) return { valid: true, empty: true, formatted: '', decimal: null };
+
+      // Bersihkan simbol derajat/menit/detik jika user mengetiknya, pisahkan berdasarkan spasi/simbol
+      const cleaned = rawInput.trim().toUpperCase().replace(/[°'"″′]/g, ' ');
+      const tokens = cleaned.split(/\s+/).filter(Boolean);
+
+      // Harus terdiri dari 4 bagian: Derajat, Menit, Detik, Hemisphere (contoh: 0 30 15.5 S)
+      if (tokens.length !== 4) {
+        return { valid: false, error: 'Gunakan 4 bagian dipisah spasi: Derajat Menit Detik Arah (Contoh: 0 30 15.5 S)' };
+      }
+
+      const deg = parseFloat(tokens[0]);
+      const min = parseFloat(tokens[1]);
+      const sec = parseFloat(tokens[2]);
+      const hemi = tokens[3];
+
+      const validHemis = isLat ? ['N', 'S'] : ['E', 'W'];
+      const maxDeg = isLat ? 90 : 180;
+
+      if (isNaN(deg) || isNaN(min) || isNaN(sec)) {
+        return { valid: false, error: 'Nilai derajat, menit, dan detik harus berupa angka.' };
+      }
+      if (deg < 0 || deg > maxDeg || min < 0 || min >= 60 || sec < 0 || sec >= 60) {
+        return { valid: false, error: `Rentang koordinat tidak valid (Derajat 0-${maxDeg}, Menit/Detik 0-59.9).` };
+      }
+      if (!validHemis.includes(hemi)) {
+        return { valid: false, error: `Arah mata angin harus ${validHemis.join(' atau ')}.` };
+      }
+
+      let decimal = deg + (min / 60) + (sec / 3600);
+      if (hemi === 'S' || hemi === 'W') decimal = -decimal;
+
+      const degPad = String(Math.floor(deg)).padStart(2, '0');
+      const minPad = String(Math.floor(min)).padStart(2, '0');
+      const secFixed = sec.toFixed(1);
+      const secPad = parseFloat(secFixed) < 10 ? '0' + secFixed : secFixed;
+
+      return {
+        valid: true,
+        empty: false,
+        formatted: `${degPad}° ${minPad}' ${secPad}" ${hemi}`,
+        decimal: parseFloat(decimal.toFixed(6))
+      };
+    }
+
+    // Ambil GPS Perangkat (Datum WGS84)
+    function getDeviceGPS(isManualTrigger = false) {
+      const statusBanner = document.getElementById('gpsStatusBanner');
+      const statusText = document.getElementById('gpsStatusText');
+      const gpsIcon = document.getElementById('gpsIcon');
+
+      if (!('geolocation' in navigator)) {
+        showGpsStatus('Perangkat/browser tidak mendukung GPS otomatis. Silakan ketik koordinat secara manual.', 'warning');
+        return;
+      }
+
+      gpsIcon.classList.add('fa-spin');
+      showGpsStatus('Mengunci satelit GPS perangkat (WGS84)...', 'info');
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          gpsIcon.classList.remove('fa-spin');
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const acc = Math.round(position.coords.accuracy);
+
+          document.getElementById('gpsLat').value = decimalToDMS(lat, true);
+          document.getElementById('gpsLon').value = decimalToDMS(lon, false);
+
+          const mapsUrl = `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+          const previewLink = document.getElementById('previewMapsLink');
+          previewLink.href = mapsUrl;
+          previewLink.classList.remove('hidden');
+
+          showGpsStatus(`GPS Terkunci (WGS84 • Akurasi ±${acc} meter)`, 'success');
+        },
+        (error) => {
+          gpsIcon.classList.remove('fa-spin');
+          let msg = 'Gagal mengambil GPS otomatis. Silakan ketik manual dengan spasi.';
+          if (error.code === error.PERMISSION_DENIED) {
+            msg = 'Izin lokasi ditolak browser. Aktifkan izin lokasi atau ketik manual dengan spasi.';
+          } else if (error.code === error.TIMEOUT) {
+            msg = 'Sinyal GPS timeout. Coba klik "Ambil GPS Perangkat" lagi atau isi manual.';
+          }
+          if (isManualTrigger || isMobileOrTablet()) {
+            showGpsStatus(msg, 'warning');
+          }
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      );
+    }
+
+    function showGpsStatus(text, type) {
+      const banner = document.getElementById('gpsStatusBanner');
+      const statusText = document.getElementById('gpsStatusText');
+      banner.classList.remove('hidden', 'bg-blue-50', 'text-blue-700', 'bg-emerald-50', 'text-emerald-800', 'bg-amber-50', 'text-amber-800');
+
+      if (type === 'success') banner.classList.add('bg-emerald-50', 'text-emerald-800');
+      else if (type === 'warning') {
+        banner.classList.add('bg-amber-50', 'text-amber-800');
+        document.getElementById('previewMapsLink').classList.add('hidden');
+      } else {
+        banner.classList.add('bg-blue-50', 'text-blue-700');
+        document.getElementById('previewMapsLink').classList.add('hidden');
+      }
+      statusText.textContent = text;
+    }
+
+    // Auto-format input spasi saat pengguna selesai mengetik (event blur / Enter)
+    function setupManualDmsInputs() {
+      const latInput = document.getElementById('gpsLat');
+      const lonInput = document.getElementById('gpsLon');
+
+      const handleFormat = () => {
+        const latParsed = parseAndFormatDMS(latInput.value, true);
+        const lonParsed = parseAndFormatDMS(lonInput.value, false);
+
+        if (!latParsed.empty && latParsed.valid) latInput.value = latParsed.formatted;
+        if (!lonParsed.empty && lonParsed.valid) lonInput.value = lonParsed.formatted;
+
+        if (!latParsed.empty && !latParsed.valid) {
+          showGpsStatus('Format Latitude salah: ' + latParsed.error, 'warning');
+          return;
+        }
+        if (!lonParsed.empty && !lonParsed.valid) {
+          showGpsStatus('Format Longitude salah: ' + lonParsed.error, 'warning');
+          return;
+        }
+
+        if (!latParsed.empty && !lonParsed.empty && latParsed.valid && lonParsed.valid) {
+          const mapsUrl = `https://www.google.com/maps?q=${latParsed.decimal},${lonParsed.decimal}`;
+          const previewLink = document.getElementById('previewMapsLink');
+          previewLink.href = mapsUrl;
+          previewLink.classList.remove('hidden');
+          showGpsStatus(`Koordinat WGS84 Valid (${latParsed.decimal}, ${lonParsed.decimal})`, 'success');
+        }
+      };
+
+      latInput.addEventListener('blur', handleFormat);
+      lonInput.addEventListener('blur', handleFormat);
+      latInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); lonInput.focus(); } });
+      lonInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleFormat(); } });
+    }
+
+    // =========================================================================
+    // REGISTRASI PWA SERVICE WORKER & INSTALL PROMPT
+    // =========================================================================
+    let deferredPrompt;
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW reg failed:', err));
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installPwaBannerDesk').classList.remove('hidden');
+      document.getElementById('installPwaBtnMobile').classList.remove('hidden');
+    });
+
+    async function installPWA() {
+      if (!deferredPrompt) {
+        alert('Untuk meng-install aplikasi ini:\n• Android/Chrome: Ketuk menu titik tiga (⋮) > "Install App" atau "Tambahkan ke Layar Utama".\n• iPhone/Safari: Ketuk ikon Share > "Add to Home Screen".');
+        return;
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredPrompt = null;
+        document.getElementById('installPwaBannerDesk').classList.add('hidden');
+        document.getElementById('installPwaBtnMobile').classList.add('hidden');
+      }
+    }
+
+    // =========================================================================
+    // NAVIGASI ANTAR HALAMAN (SPA)
+    // =========================================================================
+    function switchView(viewName, preselectJenis = null) {
+      ['dashboard', 'lapor', 'tindakan', 'statistik'].forEach(v => {
+        document.getElementById(`view-${v}`).classList.add('hidden');
+        const deskBtn = document.getElementById(`nav-desk-${v}`);
+        if (deskBtn) {
+          deskBtn.classList.remove('hse-green-light', 'font-semibold');
+          deskBtn.classList.add('text-slate-600', 'font-medium');
+        }
+        const mobBtn = document.getElementById(`nav-mob-${v}`);
+        if (mobBtn) {
+          mobBtn.classList.remove('text-emerald-700');
+          mobBtn.classList.add('text-slate-400');
+        }
+      });
+
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+      const activeDesk = document.getElementById(`nav-desk-${viewName}`);
+      if (activeDesk) {
+        activeDesk.classList.add('hse-green-light', 'font-semibold');
+        activeDesk.classList.remove('text-slate-600', 'font-medium');
+      }
+      const activeMob = document.getElementById(`nav-mob-${viewName}`);
+      if (activeMob) {
+        activeMob.classList.add('text-emerald-700');
+        activeMob.classList.remove('text-slate-400');
+      }
+
+      if (viewName === 'lapor') {
+        setDefaultDateTime();
+        initGpsMode();
+        if (preselectJenis) {
+          const radio = document.querySelector(`input[name="jenisKejadian"][value="${preselectJenis}"]`);
+          if (radio) radio.checked = true;
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function initGpsMode() {
+      const hintEl = document.getElementById('gpsModeHint');
+      const latVal = document.getElementById('gpsLat').value;
+      const lonVal = document.getElementById('gpsLon').value;
+
+      if (isMobileOrTablet()) {
+        hintEl.textContent = 'Mode Perangkat Mobile/Tablet: Mengambil koordinat GPS secara otomatis...';
+        if (!latVal && !lonVal) {
+          getDeviceGPS(false);
+        }
+      } else {
+        hintEl.textContent = 'Mode Laptop/PC: Ketik koordinat manual dengan spasi atau klik "Ambil GPS Perangkat".';
+      }
+    }
+
+    function setDefaultDateTime() {
+      const dtInput = document.getElementById('tanggalWaktu');
+      if (!dtInput.value) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        dtInput.value = now.toISOString().slice(0, 16);
+      }
+    }
+
+    // =========================================================================
+    // FETCH DATA DARI GOOGLE SHEETS
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      setDefaultDateTime();
+      setupManualDmsInputs();
+      fetchReports();
+    });
+
+    async function fetchReports() {
+      const deskIcon = document.getElementById('deskRefreshIcon');
+      const mobIcon = document.getElementById('mobileRefreshIcon');
+      if (deskIcon) deskIcon.classList.add('fa-spin');
+      if (mobIcon) mobIcon.classList.add('fa-spin');
+
+      try {
+        const res = await fetch(GAS_WEB_APP_URL);
+        const json = await res.json();
+        if (json.status === 'success') {
+          allReports = json.data || [];
+          updateDashboardUI();
+          renderTable();
+        }
+      } catch (err) {
+        console.error('Gagal mengambil data:', err);
+      } finally {
+        if (deskIcon) deskIcon.classList.remove('fa-spin');
+        if (mobIcon) mobIcon.classList.remove('fa-spin');
+      }
+    }
+
+    function updateDashboardUI() {
+      const total = allReports.length;
+      const nearMiss = allReports.filter(r => r.jenisKejadian === 'Near Miss').length;
+      const incident = allReports.filter(r => r.jenisKejadian === 'Incident').length;
+      const accident = allReports.filter(r => r.jenisKejadian === 'Accident').length;
+      const closed = allReports.filter(r => r.statusTindakLanjut === 'Closed').length;
+      const inProgress = allReports.filter(r => r.statusTindakLanjut === 'In Progress').length;
+      const open = allReports.filter(r => !r.statusTindakLanjut || r.statusTindakLanjut === 'Open').length;
+
+      document.getElementById('kpiTotal').textContent = total;
+      document.getElementById('kpiNearMiss').textContent = nearMiss;
+      document.getElementById('kpiIncidentAccident').textContent = incident + accident;
+      document.getElementById('kpiClosed').textContent = closed;
+
+      const recentEl = document.getElementById('recentReportsList');
+      if (allReports.length === 0) {
+        recentEl.innerHTML = `<p class="text-sm text-slate-400 py-6 text-center">Belum ada laporan masuk.</p>`;
+      } else {
+        recentEl.innerHTML = allReports.slice(0, 5).map(item => `
+          <div onclick="openDetailModal('${item.ticketId}')" class="py-3 flex items-center justify-between gap-3 hover:bg-slate-50 px-2 rounded-xl cursor-pointer transition">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-xl ${getJenisIconBg(item.jenisKejadian)} flex items-center justify-center shrink-0">
+                <i class="fa-solid ${getJenisIcon(item.jenisKejadian)}"></i>
+              </div>
+              <div class="truncate">
+                <p class="text-xs font-bold text-slate-800 truncate">${item.ticketId} <span class="font-normal text-slate-500">• ${escapeHtml(item.lokasi)}</span></p>
+                <p class="text-xs text-slate-500 truncate mt-0.5">${escapeHtml(item.kronologi)}</p>
+              </div>
+            </div>
+            <div class="shrink-0 text-right">
+              ${getStatusBadge(item.statusTindakLanjut)}
+              <span class="block text-[10px] text-slate-400 mt-1">${item.tanggalWaktu.split(' ')[0]}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      renderCharts({ nearMiss, incident, accident, open, inProgress, closed });
+    }
+
+    function renderCharts({ nearMiss, incident, accident, open, inProgress, closed }) {
+      const deptCounts = {};
+      allReports.forEach(r => {
+        const d = r.departemen || 'Lainnya';
+        deptCounts[d] = (deptCounts[d] || 0) + 1;
+      });
+
+      buildChart('chartJenis', 'doughnut', {
+        labels: ['Accident', 'Incident', 'Near Miss'],
+        datasets: [{ data: [accident, incident, nearMiss], backgroundColor: ['#dc2626', '#f97316', '#f59e0b'], borderWidth: 0 }]
+      }, { cutout: '68%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } } } });
+
+      buildChart('chartDepartemen', 'bar', {
+        labels: Object.keys(deptCounts),
+        datasets: [{ label: 'Jumlah', data: Object.values(deptCounts), backgroundColor: ['#dc2626', '#f97316', '#eab308', '#15803d', '#0284c7'], borderRadius: 6 }]
+      }, { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } });
+
+      buildChart('chartStatus', 'doughnut', {
+        labels: ['Selesai', 'Dalam Proses', 'Open'],
+        datasets: [{ data: [closed, inProgress, open], backgroundColor: ['#15803d', '#f59e0b', '#ef4444'], borderWidth: 0 }]
+      }, { cutout: '68%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } } } });
+
+      buildChart('statChartJenis', 'pie', {
+        labels: ['Accident', 'Incident', 'Near Miss'],
+        datasets: [{ data: [accident, incident, nearMiss], backgroundColor: ['#dc2626', '#f97316', '#f59e0b'] }]
+      });
+      buildChart('statChartDept', 'bar', {
+        labels: Object.keys(deptCounts),
+        datasets: [{ label: 'Total Kejadian', data: Object.values(deptCounts), backgroundColor: '#15803d', borderRadius: 6 }]
+      });
+    }
+
+    function buildChart(canvasId, type, data, extraOptions = {}) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      if (charts[canvasId]) charts[canvasId].destroy();
+      charts[canvasId] = new Chart(ctx, {
+        type,
+        data,
+        options: { responsive: true, maintainAspectRatio: false, ...extraOptions }
+      });
+    }
+
+    // =========================================================================
+    // UPLOAD MULTI-FILE & SUBMIT FORM KE GOOGLE APPS SCRIPT
+    // =========================================================================
+    const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'mp4', 'pdf', 'docx'];
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      for (const file of e.target.files) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!ALLOWED_EXT.includes(ext)) {
+          alert(`Format ${file.name} tidak didukung.`);
+          continue;
+        }
+        selectedFiles.push(file);
+      }
+      e.target.value = '';
+      renderAttachmentGrid();
+    });
+
+    function renderAttachmentGrid() {
+      const grid = document.getElementById('attachmentGrid');
+      const addBtn = grid.firstElementChild;
+      grid.innerHTML = '';
+      grid.appendChild(addBtn);
+
+      selectedFiles.forEach((file, idx) => {
+        const box = document.createElement('div');
+        box.className = 'relative w-20 h-20 rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center p-1 text-center overflow-hidden';
+        
+        if (file.type.startsWith('image/')) {
+          const url = URL.createObjectURL(file);
+          box.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg">`;
+        } else {
+          const icon = file.type.startsWith('video/') ? 'fa-file-video text-purple-600' : 'fa-file-pdf text-red-600';
+          box.innerHTML = `<i class="fa-solid ${icon} text-xl"></i><span class="text-[9px] text-slate-600 truncate w-full mt-1">${file.name}</span>`;
+        }
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'absolute top-1 right-1 w-5 h-5 rounded-full bg-slate-900/75 text-white text-[10px] flex items-center justify-center';
+        delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        delBtn.onclick = () => { selectedFiles.splice(idx, 1); renderAttachmentGrid(); };
+        box.appendChild(delBtn);
+
+        grid.appendChild(box);
+      });
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve({
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          base64Data: reader.result.split(',')[1]
+        });
+        reader.onerror = reject;
+      });
+    }
+
+    document.getElementById('hseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('formAlert');
+      alertBox.classList.add('hidden');
+
+      const namaPelapor = document.getElementById('namaPelapor').value.trim();
+      const departemen = document.getElementById('departemen').value;
+      const tanggalWaktu = document.getElementById('tanggalWaktu').value;
+      const lokasi = document.getElementById('lokasi').value.trim();
+      const jenisEl = document.querySelector('input[name="jenisKejadian"]:checked');
+      const kronologi = document.getElementById('kronologi').value.trim();
+      const tindakanAwal = document.getElementById('tindakanAwal').value.trim();
+
+      // Validasi & Format GPS WGS84
+      const latParsed = parseAndFormatDMS(document.getElementById('gpsLat').value, true);
+      const lonParsed = parseAndFormatDMS(document.getElementById('gpsLon').value, false);
+
+      if (!latParsed.valid) {
+        document.getElementById('formAlertMsg').textContent = 'Koordinat Lintang (Latitude): ' + latParsed.error;
+        alertBox.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (!lonParsed.valid) {
+        document.getElementById('formAlertMsg').textContent = 'Koordinat Bujur (Longitude): ' + lonParsed.error;
+        alertBox.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if ((!latParsed.empty && lonParsed.empty) || (latParsed.empty && !lonParsed.empty)) {
+        document.getElementById('formAlertMsg').textContent = 'Harap isi kedua koordinat Lintang (N/S) dan Bujur (E/W), atau kosongkan keduanya.';
+        alertBox.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      if (!namaPelapor || !departemen || !tanggalWaktu || !lokasi || !jenisEl || !kronologi || !tindakanAwal) {
+        document.getElementById('formAlertMsg').textContent = 'Harap lengkapi seluruh kolom wajib bertanda bintang (*).';
+        alertBox.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      let koordinatGps = '-';
+      let googleMapsUrl = '-';
+      if (!latParsed.empty && !lonParsed.empty) {
+        koordinatGps = `${latParsed.formatted}, ${lonParsed.formatted}`;
+        googleMapsUrl = `https://www.google.com/maps?q=${latParsed.decimal},${lonParsed.decimal}`;
+      }
+
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+
+      try {
+        const encodedFiles = await Promise.all(selectedFiles.map(fileToBase64));
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            namaPelapor, departemen, tanggalWaktu,
+            jenisKejadian: jenisEl.value,
+            lokasi,
+            koordinatGps,
+            googleMapsUrl,
+            kronologi, tindakanAwal,
+            files: encodedFiles
+          })
+        });
+
+        const result = await res.json();
+        if (result.status === 'success') {
+          document.getElementById('displayTicketId').textContent = result.ticketId;
+          document.getElementById('driveFolderLink').href = result.folderUrl;
+          document.getElementById('successModal').classList.remove('hidden');
+          document.getElementById('successModal').classList.add('flex');
+          document.getElementById('hseForm').reset();
+          document.getElementById('gpsStatusBanner').classList.add('hidden');
+          selectedFiles = [];
+          renderAttachmentGrid();
+          fetchReports();
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (err) {
+        document.getElementById('formAlertMsg').textContent = 'Gagal mengirim: ' + err.message;
+        alertBox.classList.remove('hidden');
+      } finally {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+      }
+    });
+
+    function closeSuccessAndGoDashboard() {
+      document.getElementById('successModal').classList.add('hidden');
+      document.getElementById('successModal').classList.remove('flex');
+      switchView('dashboard');
+    }
+
+    function copyTicketId() {
+      navigator.clipboard.writeText(document.getElementById('displayTicketId').textContent);
+      const fb = document.getElementById('copyFeedback');
+      fb.classList.remove('hidden');
+      setTimeout(() => fb.classList.add('hidden'), 2000);
+    }
+
+    // =========================================================================
+    // TABEL TINDAKAN, FILTER & MODAL DETAIL
+    // =========================================================================
+    document.getElementById('searchInput').addEventListener('input', renderTable);
+    document.getElementById('filterJenis').addEventListener('change', renderTable);
+
+    function setQuickStatusFilter(status) {
+      currentStatusFilter = status;
+      document.querySelectorAll('.status-tab').forEach(btn => {
+        btn.classList.remove('hse-green-light', 'font-semibold');
+        btn.classList.add('text-slate-600', 'font-medium');
+      });
+      const active = document.getElementById(`tab-status-${status}`);
+      if (active) {
+        active.classList.add('hse-green-light', 'font-semibold');
+        active.classList.remove('text-slate-600', 'font-medium');
+      }
+      renderTable();
+    }
+
+    function renderTable() {
+      const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+      const jenisFilter = document.getElementById('filterJenis').value;
+
+      const filtered = allReports.filter(r => {
+        const matchStatus = currentStatusFilter === 'ALL' || r.statusTindakLanjut === currentStatusFilter;
+        const matchJenis = jenisFilter === 'ALL' || r.jenisKejadian === jenisFilter;
+        const matchSearch = !keyword ||
+          r.ticketId.toLowerCase().includes(keyword) ||
+          r.namaPelapor.toLowerCase().includes(keyword) ||
+          r.lokasi.toLowerCase().includes(keyword) ||
+          r.kronologi.toLowerCase().includes(keyword);
+        return matchStatus && matchJenis && matchSearch;
+      });
+
+      const tbody = document.getElementById('reportsTableBody');
+      const emptyEl = document.getElementById('tableEmpty');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      tbody.innerHTML = filtered.map(item => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3.5 px-4 whitespace-nowrap">
+            <span class="font-mono font-bold text-xs text-slate-800 block">${item.ticketId}</span>
+            <span class="text-[11px] text-slate-400">${item.tanggalWaktu}</span>
+          </td>
+          <td class="py-3.5 px-4 whitespace-nowrap">${getJenisBadge(item.jenisKejadian)}</td>
+          <td class="py-3.5 px-4 max-w-xs">
+            <p class="font-medium text-slate-800 truncate">${escapeHtml(item.kronologi)}</p>
+            <span class="text-xs text-slate-400 block truncate">${escapeHtml(item.lokasi)}</span>
+          </td>
+          <td class="py-3.5 px-4 whitespace-nowrap">
+            <span class="font-medium text-slate-700 block text-xs">${escapeHtml(item.namaPelapor)}</span>
+            <span class="text-[11px] text-slate-400">${escapeHtml(item.departemen)}</span>
+          </td>
+          <td class="py-3.5 px-4 whitespace-nowrap">${getStatusBadge(item.statusTindakLanjut)}</td>
+          <td class="py-3.5 px-4 text-right whitespace-nowrap">
+            <button onclick="openDetailModal('${item.ticketId}')" class="px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 rounded-lg text-xs font-semibold transition">
+              Detail
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openDetailModal(ticketId) {
+      const r = allReports.find(item => item.ticketId === ticketId);
+      if (!r) return;
+
+      currentEditingTicketId = ticketId;
+      document.getElementById('modalTicketId').textContent = r.ticketId;
+      document.getElementById('modalPelapor').textContent = r.namaPelapor;
+      document.getElementById('modalDepartemen').textContent = r.departemen;
+      document.getElementById('modalWaktu').textContent = r.tanggalWaktu;
+      document.getElementById('modalJenis').innerHTML = getJenisBadge(r.jenisKejadian);
+      document.getElementById('modalLokasi').textContent = r.lokasi;
+      document.getElementById('modalKoordinat').textContent = r.koordinatGps || '-';
+      
+      const mapsLinkEl = document.getElementById('modalMapsLink');
+      if (r.googleMapsUrl && r.googleMapsUrl.startsWith('http')) {
+        mapsLinkEl.href = r.googleMapsUrl;
+        mapsLinkEl.classList.remove('hidden');
+        mapsLinkEl.classList.add('inline-flex');
+      } else {
+        mapsLinkEl.classList.add('hidden');
+        mapsLinkEl.classList.remove('inline-flex');
+      }
+
+      document.getElementById('modalKronologi').textContent = r.kronologi;
+      document.getElementById('modalTindakan').textContent = r.tindakanAwal;
+      document.getElementById('modalSelectStatus').value = r.statusTindakLanjut || 'Open';
+      document.getElementById('modalCatatanStatus').value = r.catatanTindakLanjut === '-' ? '' : r.catatanTindakLanjut;
+
+      const attEl = document.getElementById('modalAttachments');
+      attEl.innerHTML = `<a href="${r.folderUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:underline"><i class="fa-brands fa-google-drive"></i> Buka Folder Bukti di Google Drive</a>`;
+
+      const modal = document.getElementById('detailModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+      document.getElementById('detailModal').classList.remove('flex');
+    }
+
+    document.getElementById('statusUpdateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentEditingTicketId) return;
+
+      const btn = document.getElementById('saveStatusBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menyimpan...';
+
+      const newStatus = document.getElementById('modalSelectStatus').value;
+      const notes = document.getElementById('modalCatatanStatus').value.trim();
+
+      try {
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'updateStatus',
+            ticketId: currentEditingTicketId,
+            statusTindakLanjut: newStatus,
+            catatanTindakLanjut: notes
+          })
+        });
+        const json = await res.json();
+        if (json.status === 'success') {
+          const idx = allReports.findIndex(r => r.ticketId === currentEditingTicketId);
+          if (idx !== -1) {
+            allReports[idx].statusTindakLanjut = newStatus;
+            allReports[idx].catatanTindakLanjut = notes || '-';
+          }
+          updateDashboardUI();
+          renderTable();
+          closeDetailModal();
+        }
+      } catch (err) {
+        alert('Gagal update status: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Tandai & Simpan';
+      }
+    });
+
     function getJenisIcon(j) {
       if (j === 'Accident') return 'fa-kit-medical';
       if (j === 'Incident') return 'fa-circle-exclamation';
