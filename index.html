@@ -15,7 +15,6 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     :root {
-      /* Ganti --bg-main ke #F2F7F4 (Hijau Sage) atau #EEF2F6 (Slate) sesuai kebutuhan */
       --bg-main: #F1F5F9;
       --bg-sidebar: #FFFFFF;
       --border-subtle: #E2E8F0;
@@ -30,21 +29,18 @@
     .hse-green { background-color: #15803d; }
     .hse-green-light { background-color: #dcfce7; color: #15803d; }
 
-    /* Kartu & Kontainer dengan Border Halus + Subtle Shadow */
     .hse-card {
       background-color: #FFFFFF;
       border: 1px solid var(--border-subtle);
       box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
     }
 
-    /* Sidebar Kontras Putih Bersih dengan Garis Batas Kanan #E2E8F0 */
     .hse-sidebar {
       background-color: var(--bg-sidebar);
       border-right: 1px solid var(--border-subtle);
       box-shadow: 2px 0 10px -4px rgba(15, 23, 42, 0.04);
     }
 
-    /* Garis Aksen Atas pada Kartu Statistik */
     .accent-top-red { border-top: 3px solid #dc2626; }
     .accent-top-amber { border-top: 3px solid #f59e0b; }
     .accent-top-orange { border-top: 3px solid #ea580c; }
@@ -72,17 +68,17 @@
     <p id="loadingStatusText" class="text-sm text-slate-300 mt-1 text-center max-w-md">Mohon tunggu sebentar.</p>
   </div>
 
-  <!-- MODAL SUKSES SUBMIT LAPORAN -->
+  <!-- MODAL SUKSES / ANTREAN OFFLINE -->
   <div id="successModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="hse-card rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4">
-        <i class="fa-solid fa-check text-3xl"></i>
+      <div id="successIconBox" class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i id="successIcon" class="fa-solid fa-check text-3xl"></i>
       </div>
-      <h2 class="text-xl font-bold text-slate-900">Laporan Berhasil Terkirim!</h2>
-      <p class="text-sm text-slate-500 mt-1">Data, titik koordinat WGS84, dan bukti telah tersimpan.</p>
+      <h2 id="successTitle" class="text-xl font-bold text-slate-900">Laporan Berhasil Terkirim!</h2>
+      <p id="successDesc" class="text-sm text-slate-500 mt-1">Data, titik koordinat WGS84, dan bukti telah tersimpan.</p>
       
       <div class="bg-slate-50 border border-[#E2E8F0] rounded-xl p-4 my-4">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Nomor Tiket Laporan</span>
+        <span id="ticketLabel" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Nomor Tiket Laporan</span>
         <div class="flex items-center justify-center gap-2 mt-1">
           <span id="displayTicketId" class="text-xl font-mono font-bold text-emerald-700">HSE-0000</span>
           <button onclick="copyTicketId()" class="text-slate-400 hover:text-emerald-700 p-1"><i class="fa-regular fa-copy"></i></button>
@@ -173,7 +169,7 @@
     </div>
   </div>
 
-  <!-- SIDEBAR DESKTOP (Putih Bersih #FFFFFF + Garis Kanan #E2E8F0) -->
+  <!-- SIDEBAR DESKTOP -->
   <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 hse-sidebar z-30">
     <div class="p-5 flex items-center gap-3 border-b border-[#E2E8F0]">
       <div class="w-10 h-10 hse-green rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-sm">
@@ -185,7 +181,18 @@
       </div>
     </div>
 
-    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <!-- Status Koneksi & Antrean Offline di Sidebar -->
+    <div class="px-3 pt-3">
+      <div id="deskNetBadge" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+        <span class="flex items-center gap-1.5"><span id="deskNetDot" class="w-2 h-2 rounded-full bg-emerald-600"></span><span id="deskNetText">Online</span></span>
+        <span id="deskQueuePill" class="hidden bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0 Antre</span>
+      </div>
+      <button id="deskSyncBtn" onclick="syncOfflineQueue(true)" class="hidden mt-1.5 w-full py-1.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-semibold items-center justify-center gap-1.5 transition">
+        <i id="deskSyncIcon" class="fa-solid fa-cloud-arrow-up"></i> Sinkronkan Antrean (FIFO)
+      </button>
+    </div>
+
+    <nav class="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
       <button onclick="switchView('dashboard')" id="nav-desk-dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold hse-green-light transition">
         <i class="fa-solid fa-house w-5 text-center"></i> Dashboard
       </button>
@@ -211,7 +218,7 @@
         <div class="w-9 h-9 rounded-full hse-green text-white flex items-center justify-center font-bold text-sm">HS</div>
         <div class="truncate">
           <p class="text-xs font-bold text-slate-800 truncate">Petugas Lapangan</p>
-          <span class="inline-block text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded">WGS84 Ready</span>
+          <span class="inline-block text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded">Offline Queue Ready</span>
         </div>
       </div>
     </div>
@@ -223,11 +230,20 @@
       <div class="w-8 h-8 hse-green rounded-lg flex items-center justify-center text-white font-bold">
         <i class="fa-solid fa-plus"></i>
       </div>
-      <span class="font-bold text-slate-900">HSE Mobile</span>
+      <div>
+        <span class="font-bold text-slate-900 text-sm leading-none block">HSE Mobile</span>
+        <span id="mobNetStatus" class="text-[10px] font-semibold text-emerald-700 flex items-center gap-1 mt-0.5">
+          <span id="mobNetDot" class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+          <span id="mobNetText">Online</span>
+        </span>
+      </div>
     </div>
     <div class="flex items-center gap-2">
+      <button id="mobQueueBtn" onclick="syncOfflineQueue(true)" class="hidden text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1.5 rounded-lg items-center gap-1">
+        <i class="fa-solid fa-cloud-arrow-up"></i> <span id="mobQueueCount">0</span> Antre
+      </button>
       <button id="installPwaBtnMobile" onclick="installPWA()" class="hidden text-xs font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-1.5 rounded-lg">
-        <i class="fa-solid fa-download mr-1"></i> Install
+        <i class="fa-solid fa-download"></i>
       </button>
       <button onclick="fetchReports()" class="w-8 h-8 rounded-lg bg-slate-100 border border-[#E2E8F0] text-slate-600 flex items-center justify-center">
         <i id="mobileRefreshIcon" class="fa-solid fa-rotate-right text-sm"></i>
@@ -237,7 +253,27 @@
 
   <!-- MAIN CONTENT AREA -->
   <main class="flex-1 lg:pl-64">
-    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-5">
+
+      <!-- BANNER ANTREAN OFFLINE (Muncul jika ada laporan yang menunggu sinyal) -->
+      <div id="offlineQueuePanel" class="hidden hse-card border-l-4 border-l-amber-500 p-4 rounded-2xl">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+              <span>Antrean Laporan Offline (FIFO): <span id="panelQueueCount">0</span> Laporan</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Laporan tersimpan aman di perangkat dan akan dikirim otomatis berurutan (laporan pertama lebih dulu) saat sinyal tersedia.
+            </p>
+          </div>
+          <button onclick="syncOfflineQueue(true)" id="panelSyncBtn"
+            class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-xs">
+            <i id="panelSyncIcon" class="fa-solid fa-rotate"></i> Kirim Antrean Sekarang
+          </button>
+        </div>
+        <div id="queueItemsPreview" class="mt-3 pt-3 border-t border-[#E2E8F0] space-y-1.5 text-xs"></div>
+      </div>
 
       <!-- =================================================================== -->
       <!-- VIEW 1: DASHBOARD                                                   -->
@@ -247,7 +283,7 @@
           <div>
             <p class="text-emerald-100 text-xs">Selamat datang di Portal K3,</p>
             <h2 class="text-lg font-bold mt-0.5">Zero Harm untuk Semua</h2>
-            <span class="inline-block mt-2 text-[11px] bg-white/20 px-2.5 py-0.5 rounded-full">Auto-GPS WGS84 Aktif</span>
+            <span class="inline-block mt-2 text-[11px] bg-white/20 px-2.5 py-0.5 rounded-full">Offline FIFO + Auto-Sync</span>
           </div>
           <div class="w-12 h-12 bg-white/15 rounded-full flex items-center justify-center text-2xl">
             <i class="fa-solid fa-helmet-safety"></i>
@@ -269,7 +305,6 @@
           </div>
         </div>
 
-        <!-- 4 Kartu Statistik dengan Garis Aksen Atas -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div class="hse-card accent-top-red p-4 rounded-2xl">
             <div class="flex items-center gap-3">
@@ -365,7 +400,7 @@
           <div>
             <div class="text-xs text-slate-400 mb-1">Pelaporan &rsaquo; Insiden &rsaquo; <span class="text-emerald-700 font-medium">Buat Laporan</span></div>
             <h2 class="text-2xl font-bold text-slate-900">Pelaporan Insiden</h2>
-            <p class="text-xs sm:text-sm text-slate-500">Laporkan kejadian incident, accident, atau near miss di area kerja</p>
+            <p class="text-xs sm:text-sm text-slate-500">Tetap bisa diinput saat offline; otomatis antre FIFO & kirim saat ada sinyal</p>
           </div>
           <button type="button" onclick="switchView('dashboard')" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 hse-card rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">
             <i class="fa-solid fa-xmark"></i> Batal
@@ -377,7 +412,6 @@
         </div>
 
         <form id="hseForm" class="grid grid-cols-1 lg:grid-cols-3 gap-6" novalidate>
-          <!-- Kolom Kiri (2/3) -->
           <div class="lg:col-span-2 space-y-6">
             <div class="hse-card p-5 sm:p-6 rounded-2xl space-y-4">
               <h3 class="font-bold text-slate-800 text-base border-b border-[#E2E8F0] pb-3">1. Informasi Kejadian</h3>
@@ -424,9 +458,7 @@
                       <i class="fa-solid fa-satellite-dish text-emerald-700"></i>
                       <span>Titik Koordinat GPS (Datum: WGS84)</span>
                     </label>
-                    <p id="gpsModeHint" class="text-[11px] text-slate-500 mt-0.5">
-                      Mendeteksi perangkat...
-                    </p>
+                    <p id="gpsModeHint" class="text-[11px] text-slate-500 mt-0.5">Mendeteksi perangkat...</p>
                   </div>
                   <button type="button" onclick="getDeviceGPS(true)" id="btnGetGps"
                     class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
@@ -442,17 +474,13 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-[#E2E8F0]">
                   <div>
-                    <label for="gpsLat" class="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Lintang / Latitude (N / S)
-                    </label>
+                    <label for="gpsLat" class="block text-[11px] font-semibold text-slate-600 mb-1">Lintang / Latitude (N / S)</label>
                     <input type="text" id="gpsLat" placeholder="Ketik spasi: 0 30 15.5 S"
                       class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-mono focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
                   </div>
 
                   <div>
-                    <label for="gpsLon" class="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Bujur / Longitude (E / W)
-                    </label>
+                    <label for="gpsLon" class="block text-[11px] font-semibold text-slate-600 mb-1">Bujur / Longitude (E / W)</label>
                     <input type="text" id="gpsLon" placeholder="Ketik spasi: 117 08 42.1 E"
                       class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-mono focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none">
                   </div>
@@ -475,11 +503,9 @@
             </div>
           </div>
 
-          <!-- Kolom Kanan (1/3) -->
           <div class="space-y-6">
             <div class="hse-card p-5 sm:p-6 rounded-2xl space-y-3">
               <h3 class="font-bold text-slate-800 text-base border-b border-[#E2E8F0] pb-3">3. Klasifikasi Kejadian <span class="text-red-500">*</span></h3>
-              
               <div class="space-y-2.5">
                 <label class="cursor-pointer block">
                   <input type="radio" name="jenisKejadian" value="Near Miss" class="peer sr-only" required>
@@ -668,7 +694,216 @@
     let currentStatusFilter = 'ALL';
     let currentEditingTicketId = null;
     let charts = {};
+    let isSyncingQueue = false;
 
+    // =========================================================================
+    // INDEXEDDB OFFLINE QUEUE (FIFO BERDASAR LAPORAN PERTAMA)
+    // =========================================================================
+    const DB_NAME = 'HseOfflineQueueDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'pendingReports';
+
+    function openQueueDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            const store = db.createObjectStore(STORE_NAME, { keyPath: 'clientSubmissionId' });
+            store.createIndex('queuedAt', 'queuedAt', { unique: false });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function enqueueReportFIFO(payload) {
+      const db = await openQueueDB();
+      const entry = {
+        ...payload,
+        queuedAt: Date.now(), // Kunci urutan FIFO: laporan paling awal memiliki queuedAt terkecil
+        retryCount: 0
+      };
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).add(entry);
+        tx.oncomplete = () => resolve(entry);
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getQueueFIFO() {
+      const db = await openQueueDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const index = tx.objectStore(STORE_NAME).index('queuedAt');
+        const req = index.getAll(); // Mengembalikan urutan ascending (terlama / laporan pertama dulu)
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function removeFromQueue(clientSubmissionId) {
+      const db = await openQueueDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(clientSubmissionId);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function refreshQueueUI() {
+      const queue = await getQueueFIFO();
+      const count = queue.length;
+
+      const deskPill = document.getElementById('deskQueuePill');
+      const deskSyncBtn = document.getElementById('deskSyncBtn');
+      const mobQueueBtn = document.getElementById('mobQueueBtn');
+      const mobQueueCount = document.getElementById('mobQueueCount');
+      const panel = document.getElementById('offlineQueuePanel');
+      const panelCount = document.getElementById('panelQueueCount');
+      const previewEl = document.getElementById('queueItemsPreview');
+
+      if (count > 0) {
+        deskPill.textContent = `${count} Antre`;
+        deskPill.classList.remove('hidden');
+        deskSyncBtn.classList.remove('hidden');
+        deskSyncBtn.classList.add('flex');
+
+        mobQueueCount.textContent = count;
+        mobQueueBtn.classList.remove('hidden');
+        mobQueueBtn.classList.add('flex');
+
+        panelCount.textContent = count;
+        panel.classList.remove('hidden');
+
+        previewEl.innerHTML = queue.map((item, idx) => {
+          const timeStr = new Date(item.queuedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          return `
+            <div class="flex items-center justify-between bg-slate-50 px-3 py-1.5 rounded-lg border border-[#E2E8F0]">
+              <span class="truncate">
+                <strong class="text-amber-700">#${idx + 1}</strong> • <strong>${escapeHtml(item.jenisKejadian)}</strong> - ${escapeHtml(item.lokasi)} (${escapeHtml(item.namaPelapor)})
+              </span>
+              <span class="text-[10px] text-slate-400 shrink-0 ml-2">Antre ${timeStr}</span>
+            </div>
+          `;
+        }).join('');
+      } else {
+        deskPill.classList.add('hidden');
+        deskSyncBtn.classList.add('hidden');
+        deskSyncBtn.classList.remove('flex');
+
+        mobQueueBtn.classList.add('hidden');
+        mobQueueBtn.classList.remove('flex');
+
+        panel.classList.add('hidden');
+        previewEl.innerHTML = '';
+      }
+    }
+
+    function updateNetworkBadge() {
+      const online = navigator.onLine;
+      const deskBadge = document.getElementById('deskNetBadge');
+      const deskDot = document.getElementById('deskNetDot');
+      const deskText = document.getElementById('deskNetText');
+
+      const mobStatus = document.getElementById('mobNetStatus');
+      const mobDot = document.getElementById('mobNetDot');
+      const mobText = document.getElementById('mobNetText');
+
+      if (online) {
+        deskBadge.className = 'flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200';
+        deskDot.className = 'w-2 h-2 rounded-full bg-emerald-600';
+        deskText.textContent = 'Online';
+
+        mobStatus.className = 'text-[10px] font-semibold text-emerald-700 flex items-center gap-1 mt-0.5';
+        mobDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-600';
+        mobText.textContent = 'Online';
+      } else {
+        deskBadge.className = 'flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300';
+        deskDot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+        deskText.textContent = 'Offline (Antre)';
+
+        mobStatus.className = 'text-[10px] font-semibold text-amber-700 flex items-center gap-1 mt-0.5';
+        mobDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse';
+        mobText.textContent = 'Offline';
+      }
+    }
+
+    async function postPayloadToBackend(payload) {
+      const res = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return await res.json();
+    }
+
+    // Sinkronisasi antrean FIFO: laporan pertama dikirim lebih dulu secara berurutan
+    async function syncOfflineQueue(showFeedbackIfEmpty = false) {
+      if (isSyncingQueue) return;
+      if (!navigator.onLine) {
+        if (showFeedbackIfEmpty) alert('Perangkat masih offline. Antrean akan dikirim otomatis saat sinyal kembali.');
+        return;
+      }
+
+      const queue = await getQueueFIFO();
+      if (queue.length === 0) {
+        if (showFeedbackIfEmpty) alert('Tidak ada antrean laporan yang tertunda.');
+        return;
+      }
+
+      isSyncingQueue = true;
+      const deskIcon = document.getElementById('deskSyncIcon');
+      const panelIcon = document.getElementById('panelSyncIcon');
+      if (deskIcon) deskIcon.classList.add('fa-spin');
+      if (panelIcon) panelIcon.classList.add('fa-spin');
+
+      let syncedCount = 0;
+
+      try {
+        // Loop berurutan dari indeks 0 (laporan terlama / pertama masuk antrean)
+        for (let i = 0; i < queue.length; i++) {
+          const item = queue[i];
+          const cleanPayload = { ...item };
+          delete cleanPayload.queuedAt;
+          delete cleanPayload.retryCount;
+
+          try {
+            const result = await postPayloadToBackend(cleanPayload);
+            if (result && result.status === 'success') {
+              await removeFromQueue(item.clientSubmissionId);
+              syncedCount++;
+              await refreshQueueUI();
+            } else {
+              // Hentikan batch jika server mengembalikan error agar urutan FIFO tetap terjaga
+              break;
+            }
+          } catch (err) {
+            // Sinyal terputus di tengah sinkronisasi; stop agar urutan laporan berikutnya tidak melompat
+            break;
+          }
+        }
+
+        if (syncedCount > 0) {
+          await fetchReports();
+        }
+      } finally {
+        isSyncingQueue = false;
+        if (deskIcon) deskIcon.classList.remove('fa-spin');
+        if (panelIcon) panelIcon.classList.remove('fa-spin');
+        await refreshQueueUI();
+      }
+    }
+
+    // =========================================================================
+    // DETEKSI PERANGKAT (HP/TABLET vs LAPTOP) & KONVERSI GPS WGS84
+    // =========================================================================
     function isMobileOrTablet() {
       const ua = navigator.userAgent || navigator.vendor || window.opera;
       const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
@@ -829,6 +1064,9 @@
       lonInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleFormat(); } });
     }
 
+    // =========================================================================
+    // PWA SERVICE WORKER, INSTALL & EVENT KONEKTIVITAS
+    // =========================================================================
     let deferredPrompt;
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -841,6 +1079,21 @@
       deferredPrompt = e;
       document.getElementById('installPwaBannerDesk').classList.remove('hidden');
       document.getElementById('installPwaBtnMobile').classList.remove('hidden');
+    });
+
+    window.addEventListener('online', () => {
+      updateNetworkBadge();
+      syncOfflineQueue(false);
+    });
+
+    window.addEventListener('offline', () => {
+      updateNetworkBadge();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        syncOfflineQueue(false);
+      }
     });
 
     async function installPWA() {
@@ -857,6 +1110,9 @@
       }
     }
 
+    // =========================================================================
+    // NAVIGASI ANTAR HALAMAN (SPA)
+    // =========================================================================
     function switchView(viewName, preselectJenis = null) {
       ['dashboard', 'lapor', 'tindakan', 'statistik'].forEach(v => {
         document.getElementById(`view-${v}`).classList.add('hidden');
@@ -917,13 +1173,19 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
+      updateNetworkBadge();
       setDefaultDateTime();
       setupManualDmsInputs();
-      fetchReports();
+      await refreshQueueUI();
+      if (navigator.onLine) {
+        await syncOfflineQueue(false);
+        await fetchReports();
+      }
     });
 
     async function fetchReports() {
+      if (!navigator.onLine) return;
       const deskIcon = document.getElementById('deskRefreshIcon');
       const mobIcon = document.getElementById('mobileRefreshIcon');
       if (deskIcon) deskIcon.classList.add('fa-spin');
@@ -1084,6 +1346,43 @@
       });
     }
 
+    function generateClientSubmissionId() {
+      return 'SUB-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    function showSuccessModal({ isQueued, ticketId, folderUrl, queuePos }) {
+      const iconBox = document.getElementById('successIconBox');
+      const icon = document.getElementById('successIcon');
+      const title = document.getElementById('successTitle');
+      const desc = document.getElementById('successDesc');
+      const ticketLabel = document.getElementById('ticketLabel');
+      const displayTicket = document.getElementById('displayTicketId');
+      const driveLink = document.getElementById('driveFolderLink');
+
+      if (isQueued) {
+        iconBox.className = 'w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4';
+        icon.className = 'fa-solid fa-clock-rotate-left text-3xl';
+        title.textContent = 'Masuk Antrean Offline (FIFO)';
+        desc.textContent = 'Jaringan tidak tersedia/terputus. Laporan aman di perangkat dan akan terkirim otomatis berurutan saat ada sinyal.';
+        ticketLabel.textContent = 'Urutan Antrean Lokal';
+        displayTicket.textContent = `ANTREAN #${queuePos}`;
+        driveLink.classList.add('hidden');
+      } else {
+        iconBox.className = 'w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4';
+        icon.className = 'fa-solid fa-check text-3xl';
+        title.textContent = 'Laporan Berhasil Terkirim!';
+        desc.textContent = 'Data, titik koordinat WGS84, dan bukti telah tersimpan.';
+        ticketLabel.textContent = 'Nomor Tiket Laporan';
+        displayTicket.textContent = ticketId;
+        driveLink.href = folderUrl;
+        driveLink.classList.remove('hidden');
+      }
+
+      const modal = document.getElementById('successModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
     document.getElementById('hseForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const alertBox = document.getElementById('formAlert');
@@ -1139,35 +1438,72 @@
 
       try {
         const encodedFiles = await Promise.all(selectedFiles.map(fileToBase64));
-        const res = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            namaPelapor, departemen, tanggalWaktu,
-            jenisKejadian: jenisEl.value,
-            lokasi, koordinatGps, googleMapsUrl,
-            kronologi, tindakanAwal,
-            files: encodedFiles
-          })
-        });
+        const payload = {
+          clientSubmissionId: generateClientSubmissionId(),
+          namaPelapor, departemen, tanggalWaktu,
+          jenisKejadian: jenisEl.value,
+          lokasi, koordinatGps, googleMapsUrl,
+          kronologi, tindakanAwal,
+          files: encodedFiles
+        };
 
-        const result = await res.json();
-        if (result.status === 'success') {
-          document.getElementById('displayTicketId').textContent = result.ticketId;
-          document.getElementById('driveFolderLink').href = result.folderUrl;
-          document.getElementById('successModal').classList.remove('hidden');
-          document.getElementById('successModal').classList.add('flex');
+        // Cek apakah ada antrean sebelumnya agar urutan FIFO tetap terjaga (laporan pertama terkirim dulu)
+        const existingQueue = await getQueueFIFO();
+        if (!navigator.onLine || existingQueue.length > 0) {
+          await enqueueReportFIFO(payload);
+          await refreshQueueUI();
+          const updatedQueue = await getQueueFIFO();
+          const pos = updatedQueue.findIndex(q => q.clientSubmissionId === payload.clientSubmissionId) + 1;
+
           document.getElementById('hseForm').reset();
           document.getElementById('gpsStatusBanner').classList.add('hidden');
           selectedFiles = [];
           renderAttachmentGrid();
+          showSuccessModal({ isQueued: true, queuePos: pos });
+
+          if (navigator.onLine) {
+            syncOfflineQueue(false);
+          }
+          return;
+        }
+
+        const result = await postPayloadToBackend(payload);
+        if (result.status === 'success') {
+          document.getElementById('hseForm').reset();
+          document.getElementById('gpsStatusBanner').classList.add('hidden');
+          selectedFiles = [];
+          renderAttachmentGrid();
+          showSuccessModal({ isQueued: false, ticketId: result.ticketId, folderUrl: result.folderUrl });
           fetchReports();
         } else {
           throw new Error(result.message);
         }
       } catch (err) {
-        document.getElementById('formAlertMsg').textContent = 'Gagal mengirim: ' + err.message;
-        alertBox.classList.remove('hidden');
+        // Jika gagal kirim karena sinyal drop/timeout, masukkan ke antrean FIFO lokal
+        try {
+          const encodedFiles = await Promise.all(selectedFiles.map(fileToBase64));
+          const fallbackPayload = {
+            clientSubmissionId: generateClientSubmissionId(),
+            namaPelapor, departemen, tanggalWaktu,
+            jenisKejadian: jenisEl.value,
+            lokasi, koordinatGps, googleMapsUrl,
+            kronologi, tindakanAwal,
+            files: encodedFiles
+          };
+          await enqueueReportFIFO(fallbackPayload);
+          await refreshQueueUI();
+          const updatedQueue = await getQueueFIFO();
+          const pos = updatedQueue.findIndex(q => q.clientSubmissionId === fallbackPayload.clientSubmissionId) + 1;
+
+          document.getElementById('hseForm').reset();
+          document.getElementById('gpsStatusBanner').classList.add('hidden');
+          selectedFiles = [];
+          renderAttachmentGrid();
+          showSuccessModal({ isQueued: true, queuePos: pos });
+        } catch (qErr) {
+          document.getElementById('formAlertMsg').textContent = 'Gagal menyimpan laporan: ' + err.message;
+          alertBox.classList.remove('hidden');
+        }
       } finally {
         overlay.classList.add('hidden');
         overlay.classList.remove('flex');
@@ -1307,17 +1643,12 @@
       const notes = document.getElementById('modalCatatanStatus').value.trim();
 
       try {
-        const res = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'updateStatus',
-            ticketId: currentEditingTicketId,
-            statusTindakLanjut: newStatus,
-            catatanTindakLanjut: notes
-          })
+        const json = await postPayloadToBackend({
+          action: 'updateStatus',
+          ticketId: currentEditingTicketId,
+          statusTindakLanjut: newStatus,
+          catatanTindakLanjut: notes
         });
-        const json = await res.json();
         if (json.status === 'success') {
           const idx = allReports.findIndex(r => r.ticketId === currentEditingTicketId);
           if (idx !== -1) {
@@ -1364,4 +1695,4 @@
     }
   </script>
 </body>
-</html>v
+</html>
